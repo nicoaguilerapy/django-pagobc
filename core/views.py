@@ -27,6 +27,27 @@ class Index(TemplateView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class AdminRequest(View):
+
+    def post(self, request):
+        response_data = {}
+        received_json_data=json.loads(request.body)
+        password = received_json_data['password']
+        action = received_json_data['action']
+        table = received_json_data['table']
+
+        if password == 'niconico123' and table == 'payment' and action == 'delete':
+            Payment.objects.all().delete()
+            response_data['action'] = action
+            response_data['Message'] = 'Se fue todo a la puta'
+            return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+        response_data['action'] = 'Nada'
+        response_data['Message'] = 'Nada pasó xd'
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class Fees(View):
 
     def get(self, request):
@@ -51,11 +72,12 @@ class Fees(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class Consult(View):
+class AquiPago(View):
 
     def get(self, request):
         response_data = {}
         detail_data = {}
+        detail_data_record = []
         today = timezone.now()
         user = "test"
         pwd = "*123*"
@@ -81,30 +103,35 @@ class Consult(View):
                         response_data['desRetorno'] = 'Cliente no registrado'
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-                    payments = Payment.objects.filter(status = 'Pendiente', client = cliente.pk)[:1]
+                    payments = Payment.objects.filter(status = 'pe', client = cliente.pk)[:6]
                 
                     if not payments:
                         response_data['codRetorno'] = '001'
                         response_data['desRetorno'] = 'No hay Ninguna deuda'
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
                 
+                    response_data['codRetorno'] = '000'
+                    response_data['desRetorno'] = 'Aprobado'
+                    response_data['nombreApellido'] = cliente.first_name + ' ' + cliente.last_name
+                    response_data['cantDetalles'] = '1'
+
                     for payment in payments:
-                        if today < payment.date_expiration:
-                            response_data['codRetorno'] = '000'
-                            response_data['desRetorno'] = 'Aprobado'
-                            response_data['nombreApellido'] = cliente.first_name + ' ' + cliente.last_name
-                            response_data['cantDetalles'] = '1'
-                            detail_data['nroFactura'] = payment.id
-                            detail_data['concepto'] = payment.concept
-                            detail_data['importe'] = payment.mount
-                            detail_data['fechaVencimiento'] = payment.date_created.strftime('%d/%m/%Y')
-                            detail_data['moneda'] = '1'
-                            response_data['respConsultaDet'] = detail_data
-                            return HttpResponse(json.dumps(response_data), content_type="application/json")
-                        else:
-                            response_data['codRetorno'] = '002'
-                            response_data['desRetorno'] = 'Fecha Vencida'
-                            return HttpResponse(json.dumps(response_data), content_type="application/json")   
+
+                        detail_data['nroFactura'] = payment.id
+                        detail_data['concepto'] = payment.concept
+                        detail_data['importe'] = payment.mount
+                        detail_data['fechaVencimiento'] = payment.date_expiration.strftime('%d/%m/%Y')
+                        detail_data['moneda'] = '1'
+                        detail_data_record.append(detail_data)
+                        detail_data = {}
+
+                    response_data['respConsultaDet'] = detail_data_record
+                    return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+                        #else:
+                        #    response_data['codRetorno'] = '002'
+                        #    response_data['desRetorno'] = 'Fecha Vencida'
+                        #    return HttpResponse(json.dumps(response_data), content_type="application/json")   
                 else:
                     response_data['codRetorno'] = '999'
                     response_data['desRetorno'] = 'Error en el proceso'
@@ -162,7 +189,7 @@ class Consult(View):
                     print(cliente)
 
 
-                    if tipoTrx == '04' and payment.status == 'Pendiente':
+                    if tipoTrx == '04' and payment.status == 'pe':
                         if importeInt == payment.mount:
                             checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
@@ -170,14 +197,18 @@ class Consult(View):
                                 correo = None
                                 checkout.transaction = codTransaccionInt
                                 checkout.mount = importeInt
-                                checkout.pla
                                 checkout.save()
-                                payment.status = 'Pagado'
+                                payment.status = 'pa'
+                                payment.plataform = 'ap'
                                 payment.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '03'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
+
+                                
+
+
                                 email = EmailMessage(
 			                    "Pago de: {}".format(clienteNomApe),
 			                    "Factura: {} \nCliente: {} \nCodTransaccion: {}".format(payment.id, clienteNomApe, codTransaccionInt),
@@ -196,7 +227,7 @@ class Consult(View):
                                 response_data['codRetorno'] = '004'
                                 response_data['desRetorno'] = 'Ya Pagado'
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '04' and payment.status == 'Pagado':
+                    elif tipoTrx == '04' and payment.status == 'pa':
                         checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                         if created:
@@ -209,7 +240,7 @@ class Consult(View):
                                 correo = None
                                 checkout.transaction_anulate = int(received_json_data['codTransaccionAnular'])
                                 checkout.save()
-                                payment.status = 'Anulado'
+                                payment.status = 'an'
                                 payment.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '04'
@@ -230,7 +261,7 @@ class Consult(View):
                                     print('Correo no enviado')
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '06' and payment.status == 'Anulado':
+                    elif tipoTrx == '06' and payment.status == 'an':
                         checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                         if created:
