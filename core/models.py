@@ -4,7 +4,10 @@ from datetime import datetime
 from datetime import timedelta
 from clients.models import Client
 
-
+LABEL_CHOICES = (
+    ('ap', 'Aqui Pago'),
+    ('pe', 'Pago Express'),
+)
 
 class Payment(models.Model):
     id = models.AutoField(primary_key = True)
@@ -12,6 +15,7 @@ class Payment(models.Model):
     concept =  models.CharField('Concepto', max_length = 20, blank = False, null = False, default="Pago de Producto")
     mount = models.IntegerField('Monto', blank = False, null = False)
     status =  models.CharField('Estado', max_length = 200, blank = False, null = False, default="Pendiente")
+    plataform = models.CharField('Método de Pago', choices=LABEL_CHOICES, max_length=2)
     date_created = models.DateTimeField('Fecha Creación', auto_now_add = True)
     date_expiration = models.DateTimeField('Fecha Vencimiento', default = datetime.now() + timedelta(hours = 72))
 

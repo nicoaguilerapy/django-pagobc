@@ -53,7 +53,6 @@ class Fees(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class Consult(View):
 
-
     def get(self, request):
         response_data = {}
         detail_data = {}
@@ -129,6 +128,7 @@ class Consult(View):
         pwd = "*123*"
 
         received_json_data=json.loads(request.body)
+        print('--------------------------')
         print(received_json_data)
 
         if request.method == 'POST':
@@ -157,8 +157,12 @@ class Consult(View):
                     importeInt = int(importe)
                     codTransaccionInt = int(codTransaccion)
                     clienteNomApe = cliente.first_name + ' ' + cliente.last_name
+                    print('--------------------------')
+                    print(payment)
+                    print(cliente)
 
-                    if tipoTrx == '03' and payment.status == 'Pendiente':
+
+                    if tipoTrx == '04' and payment.status == 'Pendiente':
                         if importeInt == payment.mount:
                             checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
@@ -166,6 +170,7 @@ class Consult(View):
                                 correo = None
                                 checkout.transaction = codTransaccionInt
                                 checkout.mount = importeInt
+                                checkout.pla
                                 checkout.save()
                                 payment.status = 'Pagado'
                                 payment.save()
