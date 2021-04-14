@@ -13,16 +13,19 @@ class PaymentAdmin(admin.ModelAdmin):
 		return ('date_created','date_expiration', 'fee')
 	
 	def has_delete_permission(self, request, obj = None):
-		return request.user.is_superuser
-
-	
+		return request.user.is_superuser	
 
 class CheckoutAdmin(admin.ModelAdmin):
 	readonly_fields = ('mount','transaction_anulate', 'transaction', 'payment')
 	search_fields = ['transaction_anulate', 'transaction']
 	list_display = ( 'payment', 'transaction', 'transaction_anulate',)
 
+class FeeAdmin(admin.ModelAdmin):
+	readonly_fields = ('date_created','months_paid',)
+	#search_fields = ['transaction_anulate', 'transaction']
+	list_display = ( 'client', 'amount_payable', 'months_paid', 'months_paid',)
+
 
 admin.site.register(Checkout, CheckoutAdmin)
 admin.site.register(Payment, PaymentAdmin)
-admin.site.register(Fee)
+admin.site.register(Fee, FeeAdmin)

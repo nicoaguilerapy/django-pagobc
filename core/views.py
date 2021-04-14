@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
-from .models import Payment, Checkout
+from .models import Payment, Checkout, Fee
 from clients.models import Client
 import json
 from django.http import HttpResponse
@@ -188,53 +188,63 @@ class AquiPago(View):
                     print(payment)
                     print(cliente)
 
+                    #Tipo de Transaccion para Pagar
+                    if tipoTrx == '04':
+                        if payment.status == 'pe':
+                            if importeInt == payment.mount:
+                                checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
-                    if tipoTrx == '04' and payment.status == 'pe':
-                        if importeInt == payment.mount:
+                                if created:
+                                    correo = None
+                                    checkout.transaction = codTransaccionInt
+                                    checkout.mount = importeInt
+                                    checkout.save()
+                                    payment.status = 'pa'
+                                    payment.plataform = 'ap'
+                                    payment.save()
+                                    response_data['codServicio'] = codServicio
+                                    response_data['tipoTrx'] = '03'
+                                    response_data['codRetorno'] = '000'
+                                    response_data['desRetorno'] = 'APROBADO'
+
+                                    fee = Fee.objects.get(id = payment.fee.pk)
+                                    fee.months_paid =+ 1
+                                    fee.save()
+
+                                    email = EmailMessage(
+			                        "Pago de: {}".format(clienteNomApe),
+			                        "Factura: {} \nCliente: {} \nCodTransaccion: {}".format(payment.id, clienteNomApe, codTransaccionInt),
+			                        "no-responder@uverodev.com",
+			                        ["contacto@uverodev.com"],
+			                        reply_to=[correo]
+                                    )
+                                    try:
+                                        email.send()
+                                        print('Correo enviado')
+                                    except:
+                                        print('Correo no enviado')
+
+                                    return HttpResponse(json.dumps(response_data), content_type="application/json")
+                            else:
+                                response_data['codRetorno'] = '005'
+                                response_data['desRetorno'] = 'Monto distinto al ser pagado'
+                                return HttpResponse(json.dumps(response_data), content_type="application/json")
+                                
+                        elif payment.status == 'pa':
+                            response_data['codRetorno'] = '004'
+                            response_data['desRetorno'] = 'Ya Pagado'
+                            return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+                    #Tipo de Transaccion para Anular el pago
+                    elif tipoTrx == '03':
+                        if payment.status == 'pa':
                             checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                             if created:
-                                correo = None
-                                checkout.transaction = codTransaccionInt
-                                checkout.mount = importeInt
-                                checkout.save()
-                                payment.status = 'pa'
-                                payment.plataform = 'ap'
-                                payment.save()
-                                response_data['codServicio'] = codServicio
-                                response_data['tipoTrx'] = '03'
-                                response_data['codRetorno'] = '000'
-                                response_data['desRetorno'] = 'APROBADO'
-
-                                
-
-
-                                email = EmailMessage(
-			                    "Pago de: {}".format(clienteNomApe),
-			                    "Factura: {} \nCliente: {} \nCodTransaccion: {}".format(payment.id, clienteNomApe, codTransaccionInt),
-			                    "no-responder@uverodev.com",
-			                    ["contacto@uverodev.com"],
-			                    reply_to=[correo]
-                                )
-                                try:
-                                    email.send()
-                                    print('Correo enviado')
-                                except:
-                                    print('Correo no enviado')
-
-                                return HttpResponse(json.dumps(response_data), content_type="application/json")
-                            else:
                                 response_data['codRetorno'] = '004'
                                 response_data['desRetorno'] = 'Ya Pagado'
+                                checkout.delete()
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '04' and payment.status == 'pa':
-                        checkout,  created = Checkout.objects.get_or_create( payment = payment )
-
-                        if created:
-                            response_data['codRetorno'] = '999'
-                            response_data['desRetorno'] = 'Error en el proceso'
-                            checkout.delete()
-                            return HttpResponse(json.dumps(response_data), content_type="application/json")
                         else:
                             if not checkout.transaction_anulate:
                                 correo = None
@@ -243,7 +253,7 @@ class AquiPago(View):
                                 payment.status = 'an'
                                 payment.save()
                                 response_data['codServicio'] = codServicio
-                                response_data['tipoTrx'] = '04'
+                                response_data['tipoTrx'] = '03'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
 
@@ -295,12 +305,6 @@ class AquiPago(View):
                                     print('Correo no enviado')
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-
-                            
-                else:
-                    response_data['codRetorno'] = '999'
-                    response_data['desRetorno'] = 'Error en el proceso'
-                    return HttpResponse(json.dumps(response_data), content_type="application/json")
             else:
                 response_data['codRetorno'] = '999'
                 response_data['desRetorno'] = 'Error en el proceso'

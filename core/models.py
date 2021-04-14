@@ -19,8 +19,8 @@ STATUS_CHOICES = (
     ('pe', 'Pendiente'),
     ('pa', 'Pagado'),
     ('an', 'Anulado'),
+    ('re', 'Reversado'),
 )
-
 
 class Fee(models.Model):
     id = models.AutoField(primary_key = True)
@@ -28,7 +28,7 @@ class Fee(models.Model):
     amount_payable = models.IntegerField('Monto Mensual a Pagar', blank = True, null = True)
     amount_fees = models.IntegerField('Meses a Pagar', blank = True, null = True)
     months_paid = models.IntegerField('Meses Pagados', blank = True, null = True, default = 0)
-    date_created = models.DateTimeField(auto_now_add = True)
+    date_created = models.DateTimeField('Fecha de Creación', auto_now_add = True)
 
     class Meta:
         verbose_name = 'Cuota'
@@ -42,7 +42,7 @@ class Payment(models.Model):
     id = models.AutoField(primary_key = True)
     client = models.ForeignKey(Client, on_delete=models.PROTECT, null=True)
     fee = models.ForeignKey(Fee, on_delete=models.PROTECT, null=True)
-    concept =  models.CharField('Concepto', max_length = 20, blank = False, null = False, default="Pago de Producto")
+    concept =  models.CharField('Concepto', max_length = 255, blank = False, null = False, default="Pago de Producto")
     mount = models.IntegerField('Monto', blank = False, null = False)
     status =  models.CharField('Estado', choices=STATUS_CHOICES, max_length = 2, default = 'pe')
     plataform = models.CharField('Método de Pago', choices=PLATAFORM_CHOICES, max_length=2, default = 'va')
@@ -86,8 +86,6 @@ class Checkout(models.Model):
 
     def __str__(self):
         return "[{}] {}".format(self.transaction, self.payment)
-
-
 
 @receiver(post_save, sender=Fee, dispatch_uid="update_payment")
 def update_stock(sender, instance, **kwargs):
