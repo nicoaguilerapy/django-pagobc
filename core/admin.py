@@ -8,7 +8,7 @@ class PaymentAdmin(admin.ModelAdmin):
 	def get_readonly_fields(self, request, obj = None):
 		if request.user.groups.filter(name="Personal").exists() and obj is not None:
 			if obj.status == 'pa':
-				return ('date_created','date_expiration', 'status', 'plataform', 'mount', 'concept', 'client', 'fee')
+				return ('client','concept', 'mount', 'status', 'plataform', 'fee', 'date_created','date_expiration', )
 		
 		return ('date_created','date_expiration', 'fee')
 	
@@ -16,14 +16,14 @@ class PaymentAdmin(admin.ModelAdmin):
 		return request.user.is_superuser	
 
 class CheckoutAdmin(admin.ModelAdmin):
-	readonly_fields = ('mount','transaction_anulate', 'transaction', 'payment')
-	search_fields = ['transaction_anulate', 'transaction']
-	list_display = ( 'payment', 'transaction', 'transaction_anulate',)
+	readonly_fields = ('payment', 'mount','transaction',  'transaction_anulate' ,'date_created')
+	search_fields = ['transaction', 'transaction_anulate', ]
+	list_display = ( 'payment', 'transaction', 'transaction_anulate', )
 
 class FeeAdmin(admin.ModelAdmin):
 	readonly_fields = ('date_created','months_paid',)
 	#search_fields = ['transaction_anulate', 'transaction']
-	list_display = ( 'client', 'amount_payable', 'months_paid', 'months_paid',)
+	list_display = ( 'client', 'amount_payable', 'months_paid', 'amount_fees',)
 
 
 admin.site.register(Checkout, CheckoutAdmin)
