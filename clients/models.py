@@ -32,7 +32,7 @@ class Client(models.Model):
     city = models.CharField('Ciudad', max_length = 220, blank = False, null = False)
     phone1 = models.CharField('Celular Principal', max_length = 10, blank = True, null = True)
     phone2 = models.CharField('Celular Secundario', max_length = 10, blank = True, null = True)
-    email = models.EmailField('Correo Electrónico', blank = True, null = True)
+    email = models.EmailField('Correo Electrónico', blank = False, null = False)
     date_created = models.DateTimeField(auto_now_add = True)
 
     class Meta:

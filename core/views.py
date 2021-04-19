@@ -14,6 +14,8 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
+from django.core.mail import send_mail
+from micredito.settings import EMAIL_HOST_USER
 
 
 class StaffRequired(object):
@@ -215,7 +217,6 @@ class AquiPago(View):
                     checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                     if created:
-                        correo = None
                         checkout.transaction = codTransaccionInt
                         checkout.mount = importeInt
                         checkout.save()
@@ -239,13 +240,13 @@ class AquiPago(View):
                         email = EmailMessage(
 			                        "Pago de: {}".format(clienteNomApe),
 			                        "Factura: {} \nCliente: {} \nCodTransaccion: {}".format(payment.id, clienteNomApe, codTransaccionInt),
-			                        "no-responder@uverodev.com",
-			                        ["contacto@uverodev.com"],
-			            reply_to=[correo]
-                        )
+			                        "no-reply@gmail.com",
+			                        ["uverodevpy@gmail.com"],
+			                        reply_to=[cliente.email]
+                                    )
+                            
                         try:
                             email.send()
-                            print('Correo enviado')
                         except:
                             print('Correo no enviado')
 
@@ -260,7 +261,6 @@ class AquiPago(View):
                 response_data['codRetorno'] = '004'
                 response_data['desRetorno'] = 'Ya Pagado'
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-
 
         #Tipo de Transaccion para Anular el pago
         if tipoTrx == tr_anular:
@@ -290,7 +290,7 @@ class AquiPago(View):
                 checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                 if not created and checkout.transaction_anulate == None:
-                    correo = None
+                    
                     checkout.transaction_anulate = int(codTransaccionAnular)
                     checkout.save()
 
@@ -314,7 +314,7 @@ class AquiPago(View):
                             "Factura: {} \nCliente: {} \nCodTransaccion: {}\nCodAnulacion {}".format(payment.id, clienteNomApe, codTransaccionInt, codTransaccionAnular),
                             "no-responder@uverodev.com",
                             ["contacto@uverodev.com"],
-                            reply_to=[correo]
+                            reply_to=[cliente.email]
                     )
                         
                     try:
@@ -389,7 +389,6 @@ class AquiPago(View):
 
                     return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-            
         response_data['codRetorno'] = '999'
         response_data['desRetorno'] = 'Error en el proceso'
         return HttpResponse(json.dumps(response_data), content_type="application/json")

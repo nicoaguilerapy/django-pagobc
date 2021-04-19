@@ -121,7 +121,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-import os
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
@@ -134,16 +133,14 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
-
 # Email
-# MAIL_HOST = 'smtp.gmail.com'
-# EMAIL_HOST_USER = 'aventurerosdeleste@gmail.com'
-# EMAIL_HOST_PASSWORD = 'hioccmkvqwfkgeny'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+DEFAULT_FROM_EMAIL = 'aventurerosdeleste@gmail.com'
+EMAIL_HOST_USER = 'aventurerosdeleste@gmail.com'
+EMAIL_HOST_PASSWORD = 'sxdsehsfznxzrmdd'
 
 # Heroku 
 import django_heroku
