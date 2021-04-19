@@ -38,11 +38,26 @@ class AdminRequest(View):
         action = received_json_data['action']
         table = received_json_data['table']
 
-        if password == 'niconico123' and table == 'payment' and action == 'delete':
-            Payment.objects.all().delete()
-            response_data['action'] = action
-            response_data['Message'] = 'Se fue todo a la puta'
-            return HttpResponse(json.dumps(response_data), content_type="application/json")
+        if password == 'niconico123' and action == 'delete':
+            if table == 'payment':
+                Payment.objects.all().delete()
+                response_data['action'] = action
+                response_data['Message'] = 'Se fue todo a la puta de {}'.format(table)
+                return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+            elif table == 'checkout':
+                Checkout.objects.all().delete()
+                response_data['action'] = action
+                response_data['Message'] = 'Se fue todo a la puta de {}'.format(table)
+                return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+            elif table == 'fee':
+                Fee.objects.all().delete()
+                response_data['action'] = action
+                response_data['Message'] = 'Se fue todo a la puta de {}'.format(table)
+                return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+        
 
         response_data['action'] = 'Nada'
         response_data['Message'] = 'Nada pasó xd'
@@ -61,14 +76,13 @@ class Fees(View):
         date_created = request.GET.get('date_created')
 
         for c in range(int(amount_fees)):
-            c = c + 1
             pay = Payment.create(amount_payable)
-            pay.concept = 'Cuota de Producto Nº: '+str(c)
+            pay.concept = 'Cuota de Producto Nº: '+str(c+1)
             pay.client = cliente_obj
-            if c > 1:
+            pay.fee = instance
+                if c > 0:
                 pay.date_expiration = datetime.now() + relativedelta(months=+c)
             pay.save()
-
 
         return HttpResponse("")
 

@@ -24,7 +24,7 @@ STATUS_CHOICES = (
 
 class Fee(models.Model):
     id = models.AutoField(primary_key = True)
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=True)
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, null = True, verbose_name = 'Cliente')
     amount_payable = models.IntegerField('Monto Mensual a Pagar', blank = True, null = True)
     amount_fees = models.IntegerField('Meses a Pagar', blank = True, null = True)
     months_paid = models.IntegerField('Meses Pagados', blank = True, null = True, default = 0)
@@ -36,16 +36,16 @@ class Fee(models.Model):
         ordering = ['id']
 
     def __str__(self):
-        return "[{}] {} - Cuotas: {}/{}".format(self.id, self.client, self.months_paid, self.amount_fees)
+        return "{}".format(self.id)
 
 class Payment(models.Model):
     id = models.AutoField(primary_key = True)
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=True)
-    fee = models.ForeignKey(Fee, on_delete=models.PROTECT, null=True)
-    concept =  models.CharField('Concepto', max_length = 255, blank = False, null = False, default="Pago de Producto")
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, null = True, verbose_name = 'Cliente')
+    fee = models.ForeignKey(Fee, on_delete=models.PROTECT, null=True, verbose_name = 'Cuota')
+    concept =  models.CharField('Concepto', max_length = 255, blank = False, null = False, default = "Pago de Producto")
     mount = models.IntegerField('Monto', blank = False, null = False)
-    status =  models.CharField('Estado', choices=STATUS_CHOICES, max_length = 2, default = 'pe')
-    plataform = models.CharField('Método de Pago', choices=PLATAFORM_CHOICES, max_length=2, default = 'va')
+    status =  models.CharField('Estado', choices = STATUS_CHOICES, max_length = 2, default = 'pe')
+    plataform = models.CharField('Método de Pago', choices = PLATAFORM_CHOICES, max_length = 2, default = 'va')
     date_created = models.DateTimeField('Fecha Creación', auto_now_add = True)
     date_expiration = models.DateTimeField('Fecha Vencimiento', default = datetime.now() + timedelta(hours = 72))
 
@@ -55,7 +55,7 @@ class Payment(models.Model):
         ordering = ['date_created']
 
     def __str__(self):
-        return "{}: {}, Monto: {}".format(self.id, self.client, self.mount)
+        return "{}: {}".format(self.id, self.client)
 
     def to_dict(instance):
         opts = instance._meta
@@ -73,7 +73,7 @@ class Payment(models.Model):
         
 class Checkout(models.Model):
     id = models.AutoField(primary_key = True)
-    payment = models.ForeignKey(Payment, on_delete=models.PROTECT, null=True)
+    payment = models.ForeignKey(Payment, on_delete=models.PROTECT, null=True, verbose_name = 'Pago')
     mount = models.IntegerField('Monto', blank = True, null = True)
     transaction = models.IntegerField('Nº Transacción', blank = True, null = True)
     transaction_anulate = models.IntegerField('Nº Transacción de Anulación', blank = True, null = True)
@@ -96,7 +96,7 @@ def update_stock(sender, instance, **kwargs):
     
     for c in range(int(amount_fees)):
         pay = Payment.create(amount_payable)
-        pay.concept = 'Cuota de Producto Nº: '+str(c)
+        pay.concept = 'Cuota de Producto Nº: '+str(c+1)
         pay.client = cliente_obj
         pay.fee = instance
         if c > 0:

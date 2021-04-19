@@ -22,7 +22,6 @@ class CheckoutAdmin(admin.ModelAdmin):
 
 class FeeAdmin(admin.ModelAdmin):
 	readonly_fields = ('date_created','months_paid',)
-	#search_fields = ['transaction_anulate', 'transaction']
 	list_display = ( 'client', 'amount_payable', 'months_paid', 'amount_fees',)
 
 
