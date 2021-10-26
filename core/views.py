@@ -80,7 +80,7 @@ class Fees(View):
             pay.concept = 'Cuota de Producto Nº: '+str(c+1)
             pay.client = cliente_obj
             pay.fee = instance
-                if c > 0:
+            if c > 0:
                 pay.date_expiration = datetime.now() + relativedelta(months=+c)
             pay.save()
 
@@ -130,7 +130,7 @@ class AquiPago(View):
                     response_data['codRetorno'] = '000'
                     response_data['desRetorno'] = 'Aprobado'
                     response_data['nombreApellido'] = cliente.first_name + ' ' + cliente.last_name
-                    response_data['cantDetalles'] = '1'
+                    response_data['cantDetalles'] = str(payments.count())
 
                     for payment in payments:
 

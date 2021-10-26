@@ -88,17 +88,18 @@ class Checkout(models.Model):
         return "[{}] {}".format(self.transaction, self.payment)
 
 @receiver(post_save, sender=Fee, dispatch_uid="update_payment")
-def update_stock(sender, instance, **kwargs):
-    print('Entro en post_save')
-    cliente_obj = Client.objects.get(pk=instance.client.pk)
-    amount_payable = instance.amount_payable
-    amount_fees = instance.amount_fees
+def update_stock(sender, instance, created, **kwargs):
+    if created: 
+        print('Entro en post_save create')
+        cliente_obj = Client.objects.get(pk=instance.client.pk)
+        amount_payable = instance.amount_payable
+        amount_fees = instance.amount_fees
     
-    for c in range(int(amount_fees)):
-        pay = Payment.create(amount_payable)
-        pay.concept = 'Cuota de Producto Nº: '+str(c+1)
-        pay.client = cliente_obj
-        pay.fee = instance
-        if c > 0:
-            pay.date_expiration = datetime.now() + relativedelta(months=+c)
-        pay.save()
+        for c in range(int(amount_fees)):
+            pay = Payment.create(amount_payable)
+            pay.concept = 'Cuota de Producto Nº: '+str(c+1)
+            pay.client = cliente_obj
+            pay.fee = instance
+            if c > 0:
+                pay.date_expiration = datetime.now() + relativedelta(months=+c)
+            pay.save()
