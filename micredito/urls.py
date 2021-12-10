@@ -20,6 +20,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
     path('accounts/', include('allauth.urls')),
+    path('client/', include('clients.urls')),
+     path('profiles/', include('profiles.urls')),
 ]
 
 from django.conf import settings

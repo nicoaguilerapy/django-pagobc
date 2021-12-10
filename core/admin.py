@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Payment, Checkout
+from .models import Fee, Payment, Checkout
 
 class PaymentAdmin(admin.ModelAdmin):
 	readonly_fields = ('date_created','date_expiration')
@@ -20,3 +20,4 @@ class CheckoutAdmin(admin.ModelAdmin):
 
 admin.site.register(Checkout, CheckoutAdmin)
 admin.site.register(Payment, PaymentAdmin)
+admin.site.register(Fee)

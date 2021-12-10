@@ -155,7 +155,7 @@ EMAIL_USE_TLS = True
 # CustomUser
 AUTH_USER_MODEL = 'profiles.CustomUser'
 SITE_ID = 1
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'home'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None

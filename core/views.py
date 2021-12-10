@@ -1,8 +1,14 @@
-from django.shortcuts import render
+from django.db.models.query_utils import PathInfo
+from django.utils.timezone import now
+from datetime import *
+from datetime import timedelta
+from django.shortcuts import redirect, render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
-from .models import Payment, Checkout
+from django.views.generic.edit import CreateView
+from core.forms import FeeForm, PaymentForm
+from .models import Fee, Payment, Checkout
 from clients.models import Client
 import json
 from django.http import HttpResponse
@@ -13,6 +19,9 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse, reverse_lazy
 
 
 class StaffRequired(object):
@@ -21,13 +30,12 @@ class StaffRequired(object):
     def dispatch(self, request, *args, **kwargs):
         return super(StaffRequired, self).dispatch(request, *args, **kwargs)
 
+@method_decorator(login_required, name='dispatch')
 class Index(TemplateView):
 	template_name = 'core/index.html'
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class Fees(View):
-
     def get(self, request):
         
         cliente_pk = request.GET.get('cliente_pk')
@@ -42,7 +50,7 @@ class Fees(View):
             pay.concept = 'Cuota de Producto Nº: '+str(c)
             pay.client = cliente_obj
             if c > 1:
-                pay.date_expiration = datetime.now() + timedelta(months=+c)
+                pay.date_expiration = now() + timedelta(months=+c)
             pay.save()
 
 
@@ -51,8 +59,6 @@ class Fees(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Consult(View):
-
-
     def get(self, request):
         response_data = {}
         detail_data = {}
@@ -273,4 +279,98 @@ class Consult(View):
             response_data['desRetorno'] = 'Error en el proceso'
             return HttpResponse(json.dumps(response_data), content_type="application/json")
                     
-        
+#payment
+def payment_create(request):
+    template_name = 'core/payment_form.html'
+    form = PaymentForm(request.POST or None)
+    client_list = Client.objects.filter(owner = request.user)
+
+    if request.method == "GET":
+        context={ "form":form, "client_list":client_list }
+        return render(request, template_name, context)
+
+    if request.method == "POST":
+        print(form.data)
+        if form.is_valid():
+            payment_obj = form.save(commit=False)
+            payment_obj.owner = request.user
+            payment_obj.save()
+
+        return redirect('payment_list')
+
+def payment_list(request):
+    if request.method == "GET":
+        template_name = 'core/payment_list.html'
+        payment_list = Payment.objects.filter(owner = request.user)
+        context={ "payment_list":payment_list }
+
+        return render(request, template_name, context)
+
+def payment_update(request, *args, **kwargs):
+    template_name = 'core/payment_form.html'
+    form = PaymentForm(request.POST or None)
+    payment_obj = Payment.objects.get(id=kwargs.get('id'))
+
+    client_obj = payment_obj.client
+
+    if payment_obj.owner != request.user:
+        return redirect('home')
+
+    if request.method == "GET":
+        form.fields['status'].initial = payment_obj.status
+        context={ "client_obj":client_obj, "payment_obj":payment_obj, "form":form }
+        print()
+        print(context)
+        print()
+        return render(request, template_name, context)
+
+    if request.method == "POST":
+        form = PaymentForm(request.POST)
+        print(form.data)
+        if form.is_valid():
+            payment_obj.status = form.data['status']
+            payment_obj.save()
+
+        return redirect('payment_list')
+
+def fee_create(request):
+    template_name = 'core/fee_form.html'
+    form = FeeForm(request.POST or None)
+    client_list = Client.objects.filter(owner = request.user)
+
+    if request.method == "GET":
+        context={ "form":form, "client_list":client_list }
+        return render(request, template_name, context)
+
+    if request.method == "POST":
+        print(form.data)
+        if form.is_valid():
+            print('is valid')
+            fee_obj = form.save(commit=False)
+            fee_obj.owner = request.user
+            fee_obj.save()
+
+            for c in range(fee_obj.amount_fees):
+                c = c + 1
+                pay = Payment.objects.create(mount = fee_obj.amount_payable)
+                pay.concept = 'Cuota ID: {} | {} ({}/{})'.format(fee_obj.id, form.data['concept'], c, fee_obj.amount_fees)
+                pay.client = fee_obj.client
+                pay.owner = request.user
+                pay.status = 'PP'
+                if c > 1:
+                    pay.date_expiration = (now() + timedelta(days=c*30)).strftime("%d-%m-%Y")
+                else:
+                    pay.date_expiration = (now() + timedelta(days=3)).strftime("%d-%m-%Y")
+                pay.save()
+                print(pay)
+
+        return redirect('fee_list')
+
+
+def fee_list(request):
+    if request.method == "GET":
+        template_name = 'core/fee_list.html'
+        fee_list = Fee.objects.filter(owner = request.user)
+        context={ "fee_list":fee_list }
+
+        return render(request, template_name, context)

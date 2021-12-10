@@ -1,0 +1,135 @@
+{% extends 'core/base.html' %}
+
+{% block title1 %}
+    Clientes
+{% endblock title1 %}
+{% block title2 %}
+Cliente
+{% endblock title2 %}
+    
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <form method="POST" >
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="">Documento Nº:</label>
+                {{form.document}}
+            </div>
+            <div class="form-group">
+                <label for="">Nombre:</label>
+                {{form.first_name}}
+            </div>
+            <div class="form-group">
+                <label for="">Apellido:</label>
+                {{form.last_name}}
+            </div>
+            <div class="form-group mb-0">
+                <label for="region" class="form-label mt-15">Departamento</label>
+                <select class="form-control" name="region" id="id_region">
+                    <option value="" selected>-----------</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="city" class="form-label mt-15">Ciudad</label>
+                <select class="form-control" name="city" id="id_city">
+                    <option value="" selected>-----------</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="">Correo Electronico:</label>
+                {{form.email}}
+            </div>
+            <div class="form-group">
+                <label for="">Número de Contacto:</label>
+                {{form.phone1}}
+            </div>
+            <div class="form-group">
+                <label for="">Número de Contacto:</label>
+                {{form.phone2}}
+            </div>
+            {% if client_obj %}
+            <button type="submit" class="btn btn-primary">Modificar Cliente</button>
+            {% else %}
+            <button type="submit" class="btn btn-primary">Modificar Cliente</button>
+            {% endif %}  
+          </form>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block extra_script %}
+<script type="text/javascript">
+    var global_departamentos = null;
+    var global_ciudades = null;
+    
+    $("#id_region").on('change', function(){
+        setCiudades();
+    });
+
+$(document).ready(function(){
+    var local_values = getValuesCheck();
+    global_departamentos = JSON.parse(JSON.stringify(local_values.departamentos));
+    global_ciudades = JSON.parse(JSON.stringify(local_values.ciudades));
+    console.log(global_departamentos)
+    setDepartamentos()
+});
+
+function getValuesCheck() {
+	return JSON.parse($.ajax({
+        type: 'POST',
+		    global: false,
+		    async: false,
+        url: "/profiles/ajax/address/",
+        success:function(data){
+			return data; 
+        },
+        error:function(){   
+        }
+        }).responseText);
+}
+
+
+function setDepartamentos() {
+  var count = Object.keys(global_departamentos).length;
+
+  for(let i = 0; i < count; i ++){
+    var text = '<option value="'+global_departamentos[i].id+'">'+global_departamentos[i].nombre+'</option>'
+    $('#id_region').append(text);
+  }
+
+  {% if client_obj.region %}
+  var selId = document.getElementById("id_region")
+  selId.value = {{client_obj.region.id}}
+  {% endif %}
+
+  {% if client_obj.city %}
+  setCiudades()
+  var selId2 = document.getElementById("id_city")
+  selId2.value = {{client_obj.city.id}}
+  {% endif %}
+}
+
+function setCiudades() {
+  var select = document.getElementById('id_region');
+  var count = Object.keys(global_ciudades).length;
+
+  $('#id_city').empty().append('<option selected="selected" value="-1">Seleccionar un Departamento</option>');
+
+  for(let i = 0; i < count; i ++){
+    if(global_ciudades[i].cod_departamento == select.value){
+      var text = '<option value="'+global_ciudades[i].id+'">'+global_ciudades[i].nombre+'</option>'
+      $('#id_city').append(text);
+    }
+   
+  }
+
+}
+
+</script>
+{% endblock extra_script %}
+    

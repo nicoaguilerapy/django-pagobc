@@ -1,19 +1,37 @@
 from django.db import models
 from itertools import chain
-from datetime import datetime
+from django.utils.timezone import now
+from datetime import *
 from datetime import timedelta
 from clients.models import Client
+from profiles.models import CustomUser, Empresa
 
+STATUS_CHOICES = (
+    ('PP', 'Pago Pendiente'),
+    ('PC', 'Pago Completado'),
+    ('PR', 'Pago Revertido'),
+    ('CA', 'Cancelado'),
+    ('RE', 'Recibido'),
+    ('EM', 'Empaquetado'),
+    ('EC', 'En Camino'),
+    ('LR', 'Listo Para Retiro'),
+    ('PL', 'Problemas Logísticos'),
+    ('RE', 'Retirado'),
+)
 
+def _getExpired():
+    return (now() + timedelta(hours = 72)).strftime("%d-%m-%Y")
 
 class Payment(models.Model):
     id = models.AutoField(primary_key = True)
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True)
-    concept =  models.CharField('Concepto', max_length = 20, blank = False, null = False, default="Pago de Producto")
+    concept =  models.CharField('Concepto', max_length = 255, blank = False, null = False)
     mount = models.IntegerField('Monto', blank = False, null = False)
-    status =  models.CharField('Estado', max_length = 200, blank = False, null = False, default="Pendiente")
+    status =  models.CharField('Estado', choices=STATUS_CHOICES, max_length=2, default='PE')
     date_created = models.DateTimeField('Fecha Creación', auto_now_add = True)
-    date_expiration = models.DateTimeField('Fecha Vencimiento', default = datetime.now() + timedelta(hours = 72))
+    date_expiration = models.CharField('Fecha Vencimiento', default =_getExpired(), max_length = 30)
+    company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
+    owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         verbose_name = 'Pago'
@@ -31,12 +49,10 @@ class Payment(models.Model):
         for f in opts.many_to_many:
             data[f.name] = [i.id for i in f.value_from_object(instance)]
         return data
-
-    @classmethod
-    def create(cls, mount):
-        payment = cls(mount=mount)
-        return payment
-        
+    
+    def get_status_current(self):
+        return self.status.get_status_display()
+    
 class Checkout(models.Model):
     id = models.AutoField(primary_key = True)
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True)
@@ -44,6 +60,8 @@ class Checkout(models.Model):
     transaction = models.IntegerField('Nº Transacción', blank = True, null = True)
     transaction_anulate = models.IntegerField('Nº Transacción de Anulación', blank = True, null = True)
     date_created = models.DateTimeField(auto_now_add = True)
+    company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
+    owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         verbose_name = 'Transacción'
@@ -59,3 +77,10 @@ class Fee(models.Model):
     amount_payable = models.IntegerField('Monto Mensual a Pagar', blank = True, null = True)
     amount_fees = models.IntegerField('Cantidad de Meses', blank = True, null = True)
     date_created = models.DateTimeField(auto_now_add = True)
+    company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
+    owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+
+    def amount_fees_paid(self):
+        pay_list = Payment.objects.filter(concept__contains = 'Cuota ID: {}'.format(self.id), status = 'PC')
+        print(pay_list)
+        return pay_list.count()

@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+
+{% block title1 %}
+    Lista de Pagos
+{% endblock title1 %}
+{% block title2 %}
+Lista de Pagos
+{% endblock title2 %}
+    
+{% block content %}
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Concepto</th>
+              <th>Estado</th>
+              <th>Monto</th>
+              <th>Vencimiento</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Concepto</th>
+                <th>Estado</th>
+                <th>Monto</th>
+                <th>Vencimiento</th>
+                <th></th>
+              </tr>
+          </tfoot>
+          <tbody>
+            
+            {% for payment in payment_list %}
+            <tr>
+                <td>{{payment.id}}</td>
+                <td>{{payment.client}}</td>
+                <td>{{payment.concept}}</td>
+                <td>{{payment.get_status_display}}</td>
+                <td>{{payment.mount}}</td>
+                <td>{{payment.date_expiration}}</td>
+                <td><a href="{% url 'payment_update' payment.id %}" class="btn btn-primary btn-icon-split btn-sm">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-edit"></i>
+                    </span>
+                    <span class="text">Modificar Pedido</span>
+                  </a></td>
+              </tr>
+            {% endfor %}
+                
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+
+{% endblock content %}
+
+
+{% block extra_script %}
+<script type="text/javascript">
+    $(document).ready( function () {
+    $('#dataTable').DataTable();
+} );
+  </script>
+{% endblock extra_script %}
