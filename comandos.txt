@@ -1,0 +1,3 @@
+# Iniciar virtualenv
+
+C:\GitHub\entornos\pagosbc_env\Scripts\activate

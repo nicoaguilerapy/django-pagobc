@@ -8,7 +8,6 @@ import json
 from django.http import HttpResponse
 from django.utils import formats
 from datetime import datetime, timedelta
-from dateutil.relativedelta import *
 from datetime import date
 from django.utils import timezone        
 from django.views import View
@@ -43,7 +42,7 @@ class Fees(View):
             pay.concept = 'Cuota de Producto Nº: '+str(c)
             pay.client = cliente_obj
             if c > 1:
-                pay.date_expiration = datetime.now() + relativedelta(months=+c)
+                pay.date_expiration = datetime.now() + timedelta(months=+c)
             pay.save()
 
 

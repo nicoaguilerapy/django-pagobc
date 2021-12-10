@@ -1,0 +1,9 @@
+{% load account %}{% user_display user as user_display %}{% load i18n %}{% autoescape off %}{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}Hello from {{ site_name }}!
+
+Recibiste este Correo Electronico como usuario de {{ user_display }} y se conectó la cuenta con FENIX ONLINE.
+
+Si es correcto, activa tu cuenta en el siguiente enlace: {{ activate_url }}
+{% endblocktrans %}
+{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}Muchas Gracias por su registro {{ site_name }}!
+{{ site_domain }}{% endblocktrans %}
+{% endautoescape %}
