@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
-from .models import Ciudad, Departamento, Profile
+
+from profiles.forms import ProfileForm
+from .models import Ciudad, Departamento, Empresa, Profile
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -29,3 +31,22 @@ def ajax_address(request):
         return JsonResponse({'departamentos': data1, 'ciudades': data2 }, status=200)
 
     return JsonResponse({"cod": "503", "message": "Error de Request"}, status=200)
+
+def create_user(request):
+    profile_obj = Profile.objects.get(user = request.user)
+
+    empresa = Empresa.objects.get(admin = request.user)
+
+    print(empresa)
+
+    template_name = 'profiles/customuser_form.html'
+    form = ProfileForm
+
+    if request.method == 'GET':
+        context = {"form":form}
+        return render(request, template_name, context)
+
+    if request.method == 'POST':
+        form = ProfileForm( request.POST)
+
+        return render(request, template_name, {})

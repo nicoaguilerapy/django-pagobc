@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+
+{% block title1 %}
+    Nuevo Pago
+{% endblock title1 %}
+{% block title2 %}
+    Pago
+{% endblock title2 %}
+    
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <form method="POST" >
+            {% csrf_token %}
+            {{form.as_p}}
+            <button type="submit" class="btn btn-primary">Test</button>
+          </form>
+        
+    </div>
+</div>
+
+{% endblock content %}

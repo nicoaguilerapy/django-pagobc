@@ -32,12 +32,12 @@ class StaffRequired(object):
         return super(StaffRequired, self).dispatch(request, *args, **kwargs)
 
 
-def _sendEmail(payment_obj, client_email, cod):
-    dato_email_asunto = 'Pedido [{}] en estado: {}'.format(payment_obj.id, payment_obj.get_status_current())
+def _sendEmail(payment_id, client_email, cod, status_display):
+    dato_email_asunto = 'Pedido [{}] en estado: {}'.format(payment_id, status_display)
     try:
         send_mail(
                 dato_email_asunto,
-                "Su Pedido [{}] cambió al estado de {}\nCodido de la Transacción: {}\nEste es solo un correo informativo.".format(payment_obj.id, payment_obj.get_status_current(), cod),
+                "Su Pedido [{}] cambió al estado de {}\nCodido de la Transacción: {}\nEste es solo un correo informativo.".format(payment_id, status_display, cod),
                 client_email,
                 [client_email],
                 fail_silently=False,
@@ -177,8 +177,8 @@ class Consult(View):
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
   
                     try:
-                        payment = Payment.objects.get(id = nroFactura)
-                        cliente = Client.objects.get(id = payment.client.id)
+                        payment_obj = Payment.objects.get(id = nroFactura)
+                        cliente = Client.objects.get(id = payment_obj.client.id)
                     except:
                         response_data['codRetorno'] = '999'
                         response_data['desRetorno'] = 'Error en el proceso'
@@ -186,36 +186,40 @@ class Consult(View):
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
                     importeInt = int(importe)
-                    codTransaccionInt = int(codTransaccion)
-                    clienteNomApe = cliente.first_name + ' ' + cliente.last_name
                     print()
-                    print(payment)
+                    print(payment_obj)
                     print(cliente)
                     print()
 
-                    if tipoTrx == '03' and payment.status == 'PP':
-                        if importeInt == payment.mount:
-                            checkout,  created = Checkout.objects.get_or_create( payment = payment )
+                    if tipoTrx == '03' and payment_obj.status == 'PP':
+                        if importeInt == payment_obj.mount:
+                            checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
 
                             if created:
-                                checkout.transaction = codTransaccionInt
+                                checkout.transaction = codTransaccion
                                 checkout.mount = importeInt
+                                checkout.owner = payment_obj.owner
+                                checkout.company = payment_obj.company 
                                 checkout.save()
-                                payment.status = 'PC'
-                                payment.save()
+                                payment_obj.status = 'PC'
+                                payment_obj.save()
+                                print()
+                                print(payment_obj)
+                                print()
+                                
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '03'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
-                                _sendEmail(payment, cliente.email, codTransaccion)
+                                _sendEmail(payment_obj.id, cliente.email, codTransaccion, payment_obj.get_status_display())
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
                             else:
                                 response_data['codRetorno'] = '004'
                                 response_data['desRetorno'] = 'Ya Pagado'
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '04' and payment.status == 'PC':
-                        checkout,  created = Checkout.objects.get_or_create( payment = payment )
+                    elif tipoTrx == '04' and payment_obj.status == 'PC':
+                        checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
 
                         if created:
                             response_data['codRetorno'] = '999'
@@ -224,23 +228,25 @@ class Consult(View):
                             return HttpResponse(json.dumps(response_data), content_type="application/json")
                         else:
                             if not checkout.transaction_anulate:
-                                checkout.transaction_anulate = int(received_json_data['codTransaccionAnular'])
+                                checkout.transaction_anulate = received_json_data['codTransaccionAnular']
+                                checkout.owner = payment_obj.owner
+                                checkout.company = payment_obj.company 
                                 checkout.save()
-                                payment.status = 'PA'
-                                payment.save()
+                                payment_obj.status = 'PA'
+                                payment_obj.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '04'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
 
-                                _sendEmail(payment, cliente.email, received_json_data['codTransaccionAnular'])
+                                _sendEmail(payment_obj.id, cliente.email, checkout.transaction_anulate, payment_obj.get_status_display())
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '06' and payment.status == 'PA':
+                    elif tipoTrx == '06' and payment_obj.status == 'PA':
                         print()
                         print('Anular')
                         print()
-                        checkout,  created = Checkout.objects.get_or_create( payment = payment )
+                        checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
 
                         if created:
                             response_data['codRetorno'] = '999'
@@ -248,18 +254,19 @@ class Consult(View):
                             checkout.delete()
                             return HttpResponse(json.dumps(response_data), content_type="application/json")
                         else:
-                            if checkout.transaction_anulate == int(received_json_data['codTransaccionAnular']):
-                                correo = cliente.email
+                            if checkout.transaction_anulate == received_json_data['codTransaccionAnular']:
                                 checkout.transaction_anulate = None
+                                checkout.owner = payment_obj.owner
+                                checkout.company = payment_obj.company 
                                 checkout.save()
-                                payment.status = 'PR'
-                                payment.save()
+                                payment_obj.status = 'PR'
+                                payment_obj.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '04'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
 
-                                _sendEmail(payment, cliente.email, received_json_data['codTransaccionAnular'])
+                                _sendEmail(payment_obj.id, cliente.email, checkout.transaction, payment_obj.get_status_display())
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
 
@@ -337,6 +344,7 @@ def payment_update(request, *args, **kwargs):
 
         return redirect('payment_list')
 
+#fee
 def fee_create(request):
     profile_obj = Profile.objects.get(user = request.user)
     template_name = 'core/fee_form.html'
@@ -382,6 +390,7 @@ def fee_list(request):
 
         return render(request, template_name, context)
 
+#checkout
 def checkout_list(request):
     profile_obj = Profile.objects.get(user = request.user)
 
