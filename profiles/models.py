@@ -77,12 +77,25 @@ class Ciudad(models.Model):
         return "{}".format( Departamento.objects.get( id = self.cod_departamento).nombre )
     get_departamento.short_description = 'Departamento'
 
+class Empresa(models.Model):
+    id = models.AutoField(primary_key = True)
+    nombre = models.CharField('Nombre', max_length = 220, blank = True, null = True)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name = 'Empresa'
+        verbose_name_plural = 'Empresas'
+        ordering = ['nombre']
+
 class Profile(models.Model):
     id = models.AutoField(primary_key = True)
     user = models.OneToOneField(CustomUser, on_delete = models.CASCADE)
     first_name = models.CharField('Nombres', max_length = 200, blank = True, null = True)
     last_name = models.CharField('Apellidos', max_length = 220, blank = True, null = True)
     type =  models.CharField('Estado', choices=TYPE_CHOICES, max_length=2, default='AD')
+    company = models.ForeignKey(Empresa, on_delete = models.CASCADE, blank = True, null = True)
 
     
     class Meta:
@@ -93,18 +106,7 @@ class Profile(models.Model):
     def __str__(self):
         return "{}, {}".format(self.first_name, self.last_name)
 
-class Empresa(models.Model):
-    id = models.AutoField(primary_key = True)
-    nombre = models.CharField('Nombre', max_length = 220, blank = True, null = True)
-    profiles = models.ManyToManyField(Profile)
 
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        verbose_name = 'Empresa'
-        verbose_name_plural = 'Empresas'
-        ordering = ['nombre']
 
 @receiver(post_save, sender=CustomUser)
 def ensure_profile_exists(sender, instance, **kwargs):

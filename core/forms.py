@@ -5,7 +5,7 @@ from clients.models import Client
 class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
-        fields = ['client','concept', 'mount', 'status', 'date_expiration']
+        fields = ['client','concept', 'mount', 'status']
 
         widgets = {
             'client': forms.Select(
@@ -32,15 +32,6 @@ class PaymentForm(forms.ModelForm):
                 attrs = {
                     'class':'selectpicker form-control',
                     'id': 'status'
-                }
-            ),
-            'date_expiration': forms.TextInput(
-                attrs = {
-                    'class':'form-control',
-                    'placeholder':'',
-                    'id': 'date_expiration',
-                    'readonly':"",
-                    'aria-label':"Default select example"
                 }
             ),
         }
@@ -72,3 +63,5 @@ class FeeForm(forms.ModelForm):
                 }
             ),
         }
+
+

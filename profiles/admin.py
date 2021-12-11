@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Departamento, Ciudad
+from .models import Empresa, Profile, Departamento, Ciudad
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
@@ -50,3 +50,4 @@ class CiudadAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 admin.site.register(Departamento, DepartamentoAdmin)
 admin.site.register(Ciudad, CiudadAdmin)
 admin.site.register(Profile)
+admin.site.register(Empresa)

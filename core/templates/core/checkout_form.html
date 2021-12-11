@@ -55,20 +55,19 @@
                 {% endfor %}
                 </select>
             </div>
-            
             <div class="form-group">
                 <label for="">Concepto:</label>
-                {{form.concept}}
+                <input type="text" name="concept" class="form-control" placeholder="Concepto" id="concept" maxlength="50" required>
             </div>
             <div class="form-group">
-                <label for="">Monto:</label>
-                {{form.mount}}
+                <label for="">Monto Por Cuota:</label>
+                {{form.amount_payable}}
             </div>
             <div class="form-group">
-                <label for="">Estado:</label>
-                {{form.status}}
+                <label for="">Cantidad de Cuotas:</label>
+                {{form.amount_fees}}
             </div>
-            <button type="submit" class="btn btn-primary">Crear Pago</button>
+            <button type="submit" class="btn btn-primary">Crear Cuotas</button>
             {% endif %}
           </form>
         

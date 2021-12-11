@@ -10,6 +10,7 @@ from django.views.generic.edit import CreateView
 from core.forms import FeeForm, PaymentForm
 from .models import Fee, Payment, Checkout
 from clients.models import Client
+from profiles.models import Empresa, Profile
 import json
 from django.http import HttpResponse
 from django.utils import formats
@@ -18,17 +19,33 @@ from datetime import date
 from django.utils import timezone        
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
 
-
+            
 class StaffRequired(object):
     
     @method_decorator(staff_member_required)
     def dispatch(self, request, *args, **kwargs):
         return super(StaffRequired, self).dispatch(request, *args, **kwargs)
+
+
+def _sendEmail(payment_obj, client_email, cod):
+    dato_email_asunto = 'Pedido [{}] en estado: {}'.format(payment_obj.id, payment_obj.get_status_current())
+    try:
+        send_mail(
+                dato_email_asunto,
+                "Su Pedido [{}] cambió al estado de {}\nCodido de la Transacción: {}\nEste es solo un correo informativo.".format(payment_obj.id, payment_obj.get_status_current(), cod),
+                client_email,
+                [client_email],
+                fail_silently=False,
+                )
+
+        print("Mensaje Enviado")
+    except:
+        print("Mensaje No Enviado")
 
 @method_decorator(login_required, name='dispatch')
 class Index(TemplateView):
@@ -61,10 +78,9 @@ class Fees(View):
 class Consult(View):
     def get(self, request):
         response_data = {}
-        detail_data = {}
         today = timezone.now()
-        user = "test"
-        pwd = "*123*"
+        user = "admin"
+        pwd = "H-ad37Gb>>66GX'$"
         if request.method == 'GET':                                                                                                                                                                                                           
             codServicio = request.GET.get('codServicio')
             usuario = request.GET.get('usuario')
@@ -87,30 +103,36 @@ class Consult(View):
                         response_data['desRetorno'] = 'Cliente no registrado'
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-                    payments = Payment.objects.filter(status = 'Pendiente', client = cliente.pk)[:1]
+                    payments = Payment.objects.filter(status = 'PP', client = cliente.id)
                 
                     if not payments:
                         response_data['codRetorno'] = '001'
                         response_data['desRetorno'] = 'No hay Ninguna deuda'
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
-                
+
+                    
+                    response_data_item = []
+
                     for payment in payments:
                         if today < payment.date_expiration:
-                            response_data['codRetorno'] = '000'
-                            response_data['desRetorno'] = 'Aprobado'
-                            response_data['nombreApellido'] = cliente.first_name + ' ' + cliente.last_name
-                            response_data['cantDetalles'] = '1'
+                            print(payment)
+                            detail_data = {}
                             detail_data['nroFactura'] = payment.id
                             detail_data['concepto'] = payment.concept
                             detail_data['importe'] = payment.mount
                             detail_data['fechaVencimiento'] = payment.date_created.strftime('%d/%m/%Y')
                             detail_data['moneda'] = '1'
-                            response_data['respConsultaDet'] = detail_data
-                            return HttpResponse(json.dumps(response_data), content_type="application/json")
-                        else:
-                            response_data['codRetorno'] = '002'
-                            response_data['desRetorno'] = 'Fecha Vencida'
-                            return HttpResponse(json.dumps(response_data), content_type="application/json")   
+                            response_data_item.append(detail_data)
+                            
+
+                    response_data['codRetorno'] = '000'
+                    response_data['desRetorno'] = 'Aprobado'
+                    response_data['nombreApellido'] = cliente.first_name + ' ' + cliente.last_name
+                    response_data['cantDetalles'] = '{}'.format(payments.count())
+                    response_data['detalles'] = response_data_item
+
+                    return HttpResponse(json.dumps(response_data), content_type="application/json")
+
                 else:
                     response_data['codRetorno'] = '999'
                     response_data['desRetorno'] = 'Error en el proceso'
@@ -125,13 +147,12 @@ class Consult(View):
         response_data['desRetorno'] = 'Error en el proceso'
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-
     def post(self, request):
         response_data = {}
         detail_data = {}
         today = timezone.now()
-        user = "test"
-        pwd = "*123*"
+        user = "admin"
+        pwd = "H-ad37Gb>>66GX'$"
 
         received_json_data=json.loads(request.body)
         print(received_json_data)
@@ -154,49 +175,46 @@ class Consult(View):
                         response_data['codRetorno'] = '003'
                         response_data['desRetorno'] = 'Solo se aceptan pagos en Guaranies'
                         return HttpResponse(json.dumps(response_data), content_type="application/json")
+  
+                    try:
+                        payment = Payment.objects.get(id = nroFactura)
+                        cliente = Client.objects.get(id = payment.client.id)
+                    except:
+                        response_data['codRetorno'] = '999'
+                        response_data['desRetorno'] = 'Error en el proceso'
 
-                    
-                        
-                    payment = Payment.objects.get(id = nroFactura)
-                    cliente = Client.objects.get(id = payment.client.id)
+                        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
                     importeInt = int(importe)
                     codTransaccionInt = int(codTransaccion)
                     clienteNomApe = cliente.first_name + ' ' + cliente.last_name
+                    print()
+                    print(payment)
+                    print(cliente)
+                    print()
 
-                    if tipoTrx == '03' and payment.status == 'Pendiente':
+                    if tipoTrx == '03' and payment.status == 'PP':
                         if importeInt == payment.mount:
                             checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                             if created:
-                                correo = None
                                 checkout.transaction = codTransaccionInt
                                 checkout.mount = importeInt
                                 checkout.save()
-                                payment.status = 'Pagado'
+                                payment.status = 'PC'
                                 payment.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '03'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
-                                email = EmailMessage(
-			                    "Pago de: {}".format(clienteNomApe),
-			                    "Factura: {} \nCliente: {} \nCodTransaccion: {}".format(payment.id, clienteNomApe, codTransaccionInt),
-			                    "no-responder@uverodev.com",
-			                    ["contacto@uverodev.com"],
-			                    reply_to=[correo]
-                                )
-                                try:
-                                    email.send()
-                                    print('Correo enviado')
-                                except:
-                                    print('Correo no enviado')
+                                _sendEmail(payment, cliente.email, codTransaccion)
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
                             else:
                                 response_data['codRetorno'] = '004'
                                 response_data['desRetorno'] = 'Ya Pagado'
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '04' and payment.status == 'Pagado':
+                    elif tipoTrx == '04' and payment.status == 'PC':
                         checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                         if created:
@@ -206,31 +224,22 @@ class Consult(View):
                             return HttpResponse(json.dumps(response_data), content_type="application/json")
                         else:
                             if not checkout.transaction_anulate:
-                                correo = None
                                 checkout.transaction_anulate = int(received_json_data['codTransaccionAnular'])
                                 checkout.save()
-                                payment.status = 'Anulado'
+                                payment.status = 'PA'
                                 payment.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '04'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
 
-                                email = EmailMessage(
-                                "Anulación de: {}".format(clienteNomApe),
-                                "Factura: {} \nCliente: {} \nCodTransaccion: {}\nCodAnulacion".format(payment.id, clienteNomApe, codTransaccionInt, received_json_data['codTransaccionAnular']),
-                                "no-responder@uverodev.com",
-                                ["contacto@uverodev.com"],
-                                reply_to=[correo]
-                                )
-                                try:
-                                    email.send()
-                                    print('Correo enviado')
-                                except:
-                                    print('Correo no enviado')
+                                _sendEmail(payment, cliente.email, received_json_data['codTransaccionAnular'])
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '06' and payment.status == 'Anulado':
+                    elif tipoTrx == '06' and payment.status == 'PA':
+                        print()
+                        print('Anular')
+                        print()
                         checkout,  created = Checkout.objects.get_or_create( payment = payment )
 
                         if created:
@@ -240,28 +249,17 @@ class Consult(View):
                             return HttpResponse(json.dumps(response_data), content_type="application/json")
                         else:
                             if checkout.transaction_anulate == int(received_json_data['codTransaccionAnular']):
-                                correo = None
+                                correo = cliente.email
                                 checkout.transaction_anulate = None
                                 checkout.save()
-                                payment.status = 'Reversado'
+                                payment.status = 'PR'
                                 payment.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '04'
                                 response_data['codRetorno'] = '000'
                                 response_data['desRetorno'] = 'APROBADO'
 
-                                email = EmailMessage(
-                                "Reversión de: {}".format(clienteNomApe),
-                                "Factura: {} \nCliente: {} \nCodTransaccion: {}\nCodAnulacion".format(payment.id, clienteNomApe, codTransaccionInt, received_json_data['codTransaccionAnular']),
-                                "no-responder@uverodev.com",
-                                ["contacto@uverodev.com"],
-                                reply_to=[correo]
-                                )
-                                try:
-                                    email.send()
-                                    print('Correo enviado')
-                                except:
-                                    print('Correo no enviado')
+                                _sendEmail(payment, cliente.email, received_json_data['codTransaccionAnular'])
 
                                 return HttpResponse(json.dumps(response_data), content_type="application/json")
 
@@ -281,39 +279,45 @@ class Consult(View):
                     
 #payment
 def payment_create(request):
+    profile_obj = Profile.objects.get(user = request.user)
+
     template_name = 'core/payment_form.html'
     form = PaymentForm(request.POST or None)
-    client_list = Client.objects.filter(owner = request.user)
+    client_list = Client.objects.filter(company = profile_obj.company)
+
 
     if request.method == "GET":
         context={ "form":form, "client_list":client_list }
         return render(request, template_name, context)
 
     if request.method == "POST":
-        print(form.data)
         if form.is_valid():
             payment_obj = form.save(commit=False)
             payment_obj.owner = request.user
+            payment_obj.company = profile_obj.company
             payment_obj.save()
 
         return redirect('payment_list')
 
 def payment_list(request):
+    profile_obj = Profile.objects.get(user = request.user)
+
     if request.method == "GET":
         template_name = 'core/payment_list.html'
-        payment_list = Payment.objects.filter(owner = request.user)
+        payment_list = Payment.objects.filter(company = profile_obj.company)
         context={ "payment_list":payment_list }
 
         return render(request, template_name, context)
 
 def payment_update(request, *args, **kwargs):
+    profile_obj = Profile.objects.get(user = request.user)
     template_name = 'core/payment_form.html'
     form = PaymentForm(request.POST or None)
     payment_obj = Payment.objects.get(id=kwargs.get('id'))
 
     client_obj = payment_obj.client
 
-    if payment_obj.owner != request.user:
+    if payment_obj.company != profile_obj.company:
         return redirect('home')
 
     if request.method == "GET":
@@ -334,9 +338,10 @@ def payment_update(request, *args, **kwargs):
         return redirect('payment_list')
 
 def fee_create(request):
+    profile_obj = Profile.objects.get(user = request.user)
     template_name = 'core/fee_form.html'
     form = FeeForm(request.POST or None)
-    client_list = Client.objects.filter(owner = request.user)
+    client_list = Client.objects.filter(company = profile_obj.company)
 
     if request.method == "GET":
         context={ "form":form, "client_list":client_list }
@@ -348,6 +353,7 @@ def fee_create(request):
             print('is valid')
             fee_obj = form.save(commit=False)
             fee_obj.owner = request.user
+            fee_obj.company = profile_obj.company
             fee_obj.save()
 
             for c in range(fee_obj.amount_fees):
@@ -356,21 +362,32 @@ def fee_create(request):
                 pay.concept = 'Cuota ID: {} | {} ({}/{})'.format(fee_obj.id, form.data['concept'], c, fee_obj.amount_fees)
                 pay.client = fee_obj.client
                 pay.owner = request.user
+                pay.company = profile_obj.company
                 pay.status = 'PP'
                 if c > 1:
-                    pay.date_expiration = (now() + timedelta(days=c*30)).strftime("%d-%m-%Y")
+                    pay.date_expiration = (now() + timedelta(days=c*30))
                 else:
-                    pay.date_expiration = (now() + timedelta(days=3)).strftime("%d-%m-%Y")
+                    pay.date_expiration = (now() + timedelta(days=3))
                 pay.save()
                 print(pay)
 
         return redirect('fee_list')
 
-
 def fee_list(request):
+    profile_obj = Profile.objects.get(user = request.user)
     if request.method == "GET":
         template_name = 'core/fee_list.html'
-        fee_list = Fee.objects.filter(owner = request.user)
+        fee_list = Fee.objects.filter(company = profile_obj.company)
         context={ "fee_list":fee_list }
+
+        return render(request, template_name, context)
+
+def checkout_list(request):
+    profile_obj = Profile.objects.get(user = request.user)
+
+    if request.method == "GET":
+        template_name = 'core/checkout_list.html'
+        checkout_list = Checkout.objects.filter(company = profile_obj.company)
+        context={ "checkout_list":checkout_list }
 
         return render(request, template_name, context)

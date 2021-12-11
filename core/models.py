@@ -10,6 +10,7 @@ STATUS_CHOICES = (
     ('PP', 'Pago Pendiente'),
     ('PC', 'Pago Completado'),
     ('PR', 'Pago Revertido'),
+    ('PA', 'Pago Anulado'),
     ('CA', 'Cancelado'),
     ('RE', 'Recibido'),
     ('EM', 'Empaquetado'),
@@ -19,8 +20,6 @@ STATUS_CHOICES = (
     ('RE', 'Retirado'),
 )
 
-def _getExpired():
-    return (now() + timedelta(hours = 72)).strftime("%d-%m-%Y")
 
 class Payment(models.Model):
     id = models.AutoField(primary_key = True)
@@ -29,7 +28,7 @@ class Payment(models.Model):
     mount = models.IntegerField('Monto', blank = False, null = False)
     status =  models.CharField('Estado', choices=STATUS_CHOICES, max_length=2, default='PE')
     date_created = models.DateTimeField('Fecha Creación', auto_now_add = True)
-    date_expiration = models.CharField('Fecha Vencimiento', default =_getExpired(), max_length = 30)
+    date_expiration = models.DateTimeField('Fecha Vencimiento', default=(now() + timedelta(hours = 72)))
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
     owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
 
@@ -49,6 +48,9 @@ class Payment(models.Model):
         for f in opts.many_to_many:
             data[f.name] = [i.id for i in f.value_from_object(instance)]
         return data
+
+    def getDateString(self):
+        return self.date_expiration.strftime("%d-%m-%Y")
     
     def get_status_current(self):
         return self.status.get_status_display()

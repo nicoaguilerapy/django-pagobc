@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Index, Consult, Fees, fee_create, fee_list, payment_create, payment_list, payment_update
+from .views import Index, Consult, Fees, checkout_list, fee_create, fee_list, payment_create, payment_list, payment_update
 
 urlpatterns = [
     path('', Index.as_view(), name='home'),
@@ -12,5 +12,7 @@ urlpatterns = [
 
     path('fee/create/', fee_create, name='fee_create'),
     path('fee/list/', fee_list, name='fee_list'),
+
+    path('checkout/list/', checkout_list, name='checkout_list'),
 
 ]

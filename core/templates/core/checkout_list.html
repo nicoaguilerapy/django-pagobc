@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+
+{% block title1 %}
+    Lista de Pagos
+{% endblock title1 %}
+{% block title2 %}
+Lista de Pagos
+{% endblock title2 %}
+    
+{% block content %}
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Pago</th>
+              <th>Monto</th>
+              <th>Cod. Transacción</th>
+              <th>Cod. Anulación</th>
+              <th>Fecha de Pago</th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <th>ID</th>
+              <th>Pago</th>
+              <th>Monto</th>
+              <th>Cod. Transacción</th>
+              <th>Cod. Anulación</th>
+              <th>Fecha de Pago</th>
+            </tr>
+          </tfoot>
+          <tbody>
+            
+            {% for check in checkout_list %}
+            <tr>
+                <td>{{check.id}}</td>
+                <td>{{check.payment}}</td>
+                <td>{{check.mount}}</td>
+                <td>{{check.transaction}}</td>
+                <td>{{check.transaction_anulate}}</td>
+                <td>{{check.date_created|date:"Y-m-d" }}</td>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+
+{% endblock content %}
+
+
+{% block extra_script %}
+<script type="text/javascript">
+    $(document).ready( function () {
+    $('#dataTable').DataTable();
+} );
+  </script>
+{% endblock extra_script %}

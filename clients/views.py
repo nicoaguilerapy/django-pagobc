@@ -10,9 +10,10 @@ from django.views.generic.edit import CreateView
 
 from clients.forms import ClientForm
 from clients.models import Client
-from profiles.models import Ciudad, Departamento
+from profiles.models import Ciudad, Departamento, Profile
 
 def client_create(request):
+    profile_obj = Profile.objects.get(user = request.user)
     template_name = 'clients/client_form.html'
     form = ClientForm(request.POST or None)
 
@@ -25,13 +26,15 @@ def client_create(request):
         if form.is_valid():
             client_obj = form.save(commit=False)
             client_obj.owner = request.user
+            client_obj.company = profile_obj.company
             client_obj.save()
 
         return redirect('client_list')
 
 def client_list(request):
+    profile_obj = Profile.objects.get(user = request.user)
     if request.method == "GET":
-        client_list = Client.objects.filter(owner = request.user)
+        client_list = Client.objects.filter(company = profile_obj.company)
         template_name = 'clients/client_list.html'
         context={ "client_list":client_list }
 
@@ -40,11 +43,12 @@ def client_list(request):
 
 
 def client_update(request, *args, **kwargs):
+    profile_obj = Profile.objects.get(user = request.user)
     template_name = 'clients/client_form.html'
     form = ClientForm(request.POST or None)
     client_obj = Client.objects.get(id=kwargs.get('id'))
 
-    if client_obj.owner != request.user:
+    if client_obj.company != profile_obj.company:
         return redirect('home')
 
     if request.method == "GET":
