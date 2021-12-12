@@ -100,10 +100,14 @@ def profile_update(request, *args, **kwargs):
 
         if request.method == 'POST':
             data = request.POST
+            print(data)
             profile_obj.company = empresa
             profile_obj.first_name = data.get('first_name')
             profile_obj.last_name = data.get('last_name')
-            profile_obj.active = data.get('active')
+            if data.get('active') == 'on':
+                profile_obj.active = True
+            else:
+                profile_obj.active = False
             profile_obj.save()
 
             return redirect('profile_list')
