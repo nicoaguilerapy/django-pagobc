@@ -95,10 +95,10 @@ class Profile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete = models.CASCADE)
     first_name = models.CharField('Nombres', max_length = 200, blank = True, null = True)
     last_name = models.CharField('Apellidos', max_length = 220, blank = True, null = True)
-    type =  models.CharField('Estado', choices=TYPE_CHOICES, max_length=2, default='AD')
+    type =  models.CharField('Tipo', choices=TYPE_CHOICES, max_length=2, default='AD')
     company = models.ForeignKey(Empresa, on_delete = models.CASCADE, blank = True, null = True)
+    active = models.BooleanField('Activado', default= True)
 
-    
     class Meta:
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfiles'
@@ -106,8 +106,6 @@ class Profile(models.Model):
     
     def __str__(self):
         return "{}, {}".format(self.first_name, self.last_name)
-
-
 
 @receiver(post_save, sender=CustomUser)
 def ensure_profile_exists(sender, instance, **kwargs):

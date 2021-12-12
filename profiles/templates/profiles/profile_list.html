@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+
+{% block title1 %}
+    Lista de Pagos
+{% endblock title1 %}
+{% block title2 %}
+Lista de Pagos
+{% endblock title2 %}
+    
+{% block content %}
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th></th>
+              <th></th>
+            </tr>
+          </tfoot>
+          <tbody>
+            
+            {% for profile in profile_list %}
+            <tr>
+                <td>{{profile.user.email}}</td>
+                <td>{{profile.first_name}}</td>
+                <td>{{profile.last_name}}</td>
+                <th><a href="{% url 'profile_update' profile.id %}" class="btn btn-primary btn-icon-split btn-sm">
+                  <span class="icon text-white-50">
+                      <i class="fas fa-edit"></i>
+                  </span>
+                  <span class="text">Modificar Pedido</span>
+                </a></th>
+                <th></th>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+
+{% endblock content %}
+
+
+{% block extra_script %}
+<script type="text/javascript">
+    $(document).ready( function () {
+    $('#dataTable').DataTable();
+} );
+  </script>
+{% endblock extra_script %}

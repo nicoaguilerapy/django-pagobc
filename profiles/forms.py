@@ -5,7 +5,7 @@ from .models import Profile, CustomUser
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['first_name','last_name', 'type']
+        fields = ['first_name','last_name', 'type', 'active']
 
         widgets = {
             'first_name': forms.TextInput(
@@ -26,6 +26,12 @@ class ProfileForm(forms.ModelForm):
                 attrs = {
                     'class':'selectpicker form-control',
                     'id': 'type'
+                }
+            ),
+            'active': forms.CheckboxInput(
+                attrs = {
+                    'class':'form-check-input',
+                    'id': 'active'
                 }
             ),
             

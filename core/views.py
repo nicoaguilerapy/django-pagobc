@@ -48,8 +48,24 @@ def _sendEmail(payment_id, client_email, cod, status_display):
         print("Mensaje No Enviado")
 
 @method_decorator(login_required, name='dispatch')
-class Index(TemplateView):
-	template_name = 'core/index.html'
+class BlankPage(TemplateView):
+    template_name = 'core/blank_page.html'
+
+@login_required()
+def home(request):
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
+    template_name = 'core/index.html'
+
+    context = {}
+    context['profile'] = profile
+
+    pagos.
+
+
+    return render(request, template_name, context)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Fees(View):
@@ -72,7 +88,6 @@ class Fees(View):
 
 
         return HttpResponse("")
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Consult(View):
@@ -259,7 +274,7 @@ class Consult(View):
                                 checkout.owner = payment_obj.owner
                                 checkout.company = payment_obj.company 
                                 checkout.save()
-                                payment_obj.status = 'PR'
+                                payment_obj.status = 'PC'
                                 payment_obj.save()
                                 response_data['codServicio'] = codServicio
                                 response_data['tipoTrx'] = '04'
@@ -285,54 +300,74 @@ class Consult(View):
             return HttpResponse(json.dumps(response_data), content_type="application/json")
                     
 #payment
+@login_required()
 def payment_create(request):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
 
     template_name = 'core/payment_form.html'
     form = PaymentForm(request.POST or None)
-    client_list = Client.objects.filter(company = profile_obj.company)
+    client_list = Client.objects.filter(company = profile.company)
 
+    context = {}
+    context['profile'] = profile
 
     if request.method == "GET":
-        context={ "form":form, "client_list":client_list }
+        context['client_list'] = client_list
+        context['form'] = form
         return render(request, template_name, context)
 
     if request.method == "POST":
         if form.is_valid():
             payment_obj = form.save(commit=False)
             payment_obj.owner = request.user
-            payment_obj.company = profile_obj.company
+            payment_obj.company = profile.company
             payment_obj.save()
 
         return redirect('payment_list')
 
+@login_required()
 def payment_list(request):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
 
     if request.method == "GET":
         template_name = 'core/payment_list.html'
-        payment_list = Payment.objects.filter(company = profile_obj.company)
-        context={ "payment_list":payment_list }
+        payment_list = Payment.objects.filter(company = profile.company)
+
+        context = {}
+        context['profile'] = profile
+        context['payment_list'] = payment_list
 
         return render(request, template_name, context)
 
+@login_required()
 def payment_update(request, *args, **kwargs):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
     template_name = 'core/payment_form.html'
     form = PaymentForm(request.POST or None)
     payment_obj = Payment.objects.get(id=kwargs.get('id'))
-
+    context = {}
     client_obj = payment_obj.client
 
-    if payment_obj.company != profile_obj.company:
+    if payment_obj.company != profile.company:
         return redirect('home')
 
     if request.method == "GET":
         form.fields['status'].initial = payment_obj.status
-        context={ "client_obj":client_obj, "payment_obj":payment_obj, "form":form }
-        print()
-        print(context)
-        print()
+        
+        context['form'] = form
+        context['payment_obj'] = payment_obj
+        context['client_obj'] = client_obj
+        context['profile'] = profile
+
         return render(request, template_name, context)
 
     if request.method == "POST":
@@ -345,14 +380,23 @@ def payment_update(request, *args, **kwargs):
         return redirect('payment_list')
 
 #fee
+@login_required()
 def fee_create(request):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
+
     template_name = 'core/fee_form.html'
     form = FeeForm(request.POST or None)
-    client_list = Client.objects.filter(company = profile_obj.company)
+    client_list = Client.objects.filter(company = profile.company)
 
     if request.method == "GET":
-        context={ "form":form, "client_list":client_list }
+        context = {}
+        context['client_list'] = client_list
+        context['form'] = form
+        context['profile'] = profile
+
         return render(request, template_name, context)
 
     if request.method == "POST":
@@ -361,7 +405,7 @@ def fee_create(request):
             print('is valid')
             fee_obj = form.save(commit=False)
             fee_obj.owner = request.user
-            fee_obj.company = profile_obj.company
+            fee_obj.company = profile.company
             fee_obj.save()
 
             for c in range(fee_obj.amount_fees):
@@ -370,7 +414,7 @@ def fee_create(request):
                 pay.concept = 'Cuota ID: {} | {} ({}/{})'.format(fee_obj.id, form.data['concept'], c, fee_obj.amount_fees)
                 pay.client = fee_obj.client
                 pay.owner = request.user
-                pay.company = profile_obj.company
+                pay.company = profile.company
                 pay.status = 'PP'
                 if c > 1:
                     pay.date_expiration = (now() + timedelta(days=c*30))
@@ -381,22 +425,35 @@ def fee_create(request):
 
         return redirect('fee_list')
 
+@login_required()
 def fee_list(request):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
+
     if request.method == "GET":
         template_name = 'core/fee_list.html'
-        fee_list = Fee.objects.filter(company = profile_obj.company)
-        context={ "fee_list":fee_list }
+        fee_list = Fee.objects.filter(company = profile.company)
+        context = {}
+        context['fee_list'] = fee_list
+        context['profile'] = profile
 
         return render(request, template_name, context)
 
 #checkout
+@login_required()
 def checkout_list(request):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
 
     if request.method == "GET":
         template_name = 'core/checkout_list.html'
-        checkout_list = Checkout.objects.filter(company = profile_obj.company)
-        context={ "checkout_list":checkout_list }
+        checkout_list = Checkout.objects.filter(company = profile.company)
+        context = {}
+        context['checkout_list'] = checkout_list
+        context['profile'] = profile
 
         return render(request, template_name, context)

@@ -1,195 +1,64 @@
-{% extends 'core/index.html' %}
-{% load static %}
-{% block titulo %}Perfil{% endblock %}
-{% block content %}
-<section class="page-title-area bg-img" data-bg-img="">
-	<div class="container">
-	  <div class="row">
-		<div class="col-lg-12">
-		  <div class="page-title-content">
-			</div>
-		</div>
-	  </div>
-	</div>
-  </section>
-<style>.errorlist{color:red;}</style>
-<main role="main">
-  <div class="container">
-    <div class="row mt-3">
-      <div class="col-md-9 mx-auto mb-5">
-        <form class="login-form-wrapper"action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-          <div class="row">
-            <!-- Previa del avatar -->
-            <div class="col-md-2">
-              {% if request.user.profile.image %}
-                <img src="{{request.user.profile.image.url}}" class="img-fluid">
-                <p class="mt-1">¿Borrar? <input type="checkbox" id="image-clear" name="image-clear" /></p>
-                <br><br>
-                <a href="/accounts/password/change/">Cambiar Contraseña</a>
-                <br><br>
-              {% else %}
-              <img src="{% static 'assets/img/profiles/no-pic.jpg' %}" class="img-fluid">
-              <br><br>
-                <a href="/accounts/password/change/">Cambiar Contraseña</a>
-                <br><br>
-              {% endif %}
-            </div>
-            <!-- Formulario -->
-            <div class="col-md-9">
-              <h3>Perfil</h3>
-                <input type="file" name="image" class="form-control-file mt-3" id="id_image">
-                <br><br>
-                <div class="row">
-                  <div class="col-md-6">
-                  <div class="form-group mb-6">
-                    <label for="document" class="form-label mt-15">Documento</label>
-                    <input type="text" class="form-control" name="document" value="{% if profile.document %}{{profile.document}}{% endif %}" required id="id_document">
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group mb-6">
-                   </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-0">
-                      <label for="password" class="form-label mt-15">Nombre</label>
-                      <input type="text" class="form-control" name="first_name" value="{% if profile.first_name %}{{profile.first_name}}{% endif %}" required id="id_first_name">
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group mb-0">
-                      <label for="password" class="form-label mt-15">Apellido</label>
-                      <input type="text" class="form-control" name="last_name" value="{% if profile.last_name %}{{profile.last_name}}{% endif %}" required id="id_last_name">
-                    </div>
-                  </div>
+{% extends 'core/base.html' %}
 
-                  <div class="col-md-6">
-                    <div class="form-group mb-0">
-                      <label for="region" class="form-label mt-15">Departamento</label>
-
-                  <select class="form-control" name="region" id="id_region">
-                    <option value="" selected>-----------</option>
-                  </select>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group mb-0">
-                      <label for="city" class="form-label mt-15">Ciudad</label>
-                      <select class="form-control" name="city" id="id_city">
-                        <option value="" selected>-----------</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="col-12">
-                    <div class="form-group mb-0">
-                      <label for="street_address" class="form-label mt-15">Dirección</label>
-                      <input type="text" class="form-control" name="street_address" value="{% if profile.street_address %}{{profile.street_address}}{% endif %}"  id="id_street_address">
-                    </div>
-
-                    <div class="form-group mb-0">
-                      <label for="ref_address" class="form-label mt-15">Referencias</label>
-                      <input type="text" class="form-control" name="ref_address" value="{% if profile.ref_address %}{{profile.ref_address}}{% endif %}"  id="id_ref_address">
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group mb-6">
-                      <label for="phone" class="form-label mt-15">Celular</label>
-                      <input type="text" class="form-control" name="phone" value="{% if profile.phone %}{{profile.phone}}{% endif %}" required id="id_phone">
-                    </div>
-                  </div>
-                  <div class="d-flex justify-content-center">
-                  <div class="row">
-                    <div class="col-md-12">
-                      <div class="form-group mb-0 form-group-info">
-                        <br>
-                        
-                        <button class="btn btn-theme btn-black" type="submit">Actualziar</button>
-                      </div>
-                    </div>
-                    </div>
-                  </div>
-                  </div>
-              </div>
-          </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</main>
-{% endblock %}
-
-{% block extras_script %}
-<script type="text/javascript">
-    var global_departamentos = null;
-    var global_ciudades = null;
+{% block title1 %}
+    Nuevo Pago
+{% endblock title1 %}
+{% block title2 %}
+    Pago
+{% endblock title2 %}
     
-    $("#id_region").on('change', function(){
-        setCiudades();
-    });
+{% block content %}
 
-$(document).ready(function(){
-    var local_values = getValuesCheck();
-    global_departamentos = JSON.parse(JSON.stringify(local_values.departamentos));
-    global_ciudades = JSON.parse(JSON.stringify(local_values.ciudades));
-    setDepartamentos()
-});
+<div class="container">
+    <div class="row">
+        <form method="POST" id="form-user">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="">Nombre:</label>
+                <input type="text" name="first_name" class="form-control" placeholder="Ingrese el Nombre" id="first_name" maxlength="200" required >
+            </div>
+            <div class="form-group">
+                <label for="">Apellido:</label>
+                <input type="text" name="last_name" class="form-control" placeholder="Ingrese el apellido" id="last_name" maxlength="220" required >
+            </div>
+            <div class="form-group">
+                <label for="">Tipo:</label>
+                {{form.type}}
+            </div>
+            
+            {% if profile_obj %}
+            <div class="form-group">
+                {{form.active}}
+                <label class="form-check-label" for="active">Activado</label>
+            </div>
+            <button class="btn btn-primary" id="check-submit" type="submit" >Modificar Usuario</button>
+            {% else %}
+            <div class="form-group">
+                <label for="">Correo Electronico:</label>
+                <input type="email" name="email" class="form-control" placeholder="Ingrese el correo" id="email" maxlength="220" required >
+            </div>
+            <div class="form-group">
+                <label for="">Contraseña:</label>
+                <input type="password" name="password1" class="form-control" id="password1" maxlength="220" required >
+            </div>
+            <div class="form-group">
+                <label for="">Repetir Contraseña:</label>
+                <input type="password" name="password2" class="form-control" id="password2" maxlength="220" required >
+            </div>
 
-function getValuesCheck() {
-	return JSON.parse($.ajax({
-        type: 'POST',
-		    global: false,
-		    async: false,
-        url: "/profiles/ajax/address/",
-        headers: {'X-CSRFToken':getCookie('csrftoken')},
-        success:function(data){
-			return data; 
-        },
-        error:function(){   
-        }
-        }).responseText);
-}
+            <p  style="color:red;" >{{error_message}}</p>
+            <button class="btn btn-primary" id="check-submit" onclick="checkUser();">Crear Usuario</button>
+            {% endif %}
+            
+          </form>
+        
+    </div>
+</div>
 
-function setDepartamentos() {
-  var count = Object.keys(global_departamentos).length;
+{% endblock content %}
 
-  for(let i = 0; i < count; i ++){
-    var text = '<option value="'+global_departamentos[i].id+'">'+global_departamentos[i].nombre+'</option>'
-    $('#id_region').append(text);
-  }
 
-  {% if profile.region %}
-  var selId = document.getElementById("id_region")
-  selId.value = {{profile.region.id}}
-  {% endif %}
-
-  {% if profile.city %}
-  setCiudades()
-  var selId2 = document.getElementById("id_city")
-  selId2.value = {{profile.city.id}}
-  {% endif %}
-}
-
-function setCiudades() {
-  var select = document.getElementById('id_region');
-  var count = Object.keys(global_ciudades).length;
-
-  $('#id_city').empty().append('<option selected="selected" value="-1">Seleccionar un Departamento</option>');
-
-  for(let i = 0; i < count; i ++){
-    if(global_ciudades[i].cod_departamento == select.value){
-      var text = '<option value="'+global_ciudades[i].id+'">'+global_ciudades[i].nombre+'</option>'
-      $('#id_city').append(text);
-    }
+{% block extra_script %}
    
-  }
-
-}
-
-
-</script>
-
-{% endblock %}
+{% endblock extra_script %}
+    

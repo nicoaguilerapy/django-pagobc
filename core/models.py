@@ -9,7 +9,6 @@ from profiles.models import CustomUser, Empresa
 STATUS_CHOICES = (
     ('PP', 'Pago Pendiente'),
     ('PC', 'Pago Completado'),
-    ('PR', 'Pago Revertido'),
     ('PA', 'Pago Anulado'),
     ('CA', 'Cancelado'),
     ('RE', 'Recibido'),
