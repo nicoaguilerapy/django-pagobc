@@ -363,7 +363,7 @@ def payment_create(request):
                 print()
 
 
-                r = requests.post('http://127.0.0.1:8000/pagopar/payment/', data = json.dumps({"id_client":payment_obj.client.id, "id_payment":payment_obj.id, "id_identificador": identificador}))
+                r = requests.post('https://django-pagosbc.herokuapp.com/pagopar/payment/', data = json.dumps({"id_client":payment_obj.client.id, "id_payment":payment_obj.id, "id_identificador": identificador}))
 
                 if r.json()['cod'] == '000':
                     link = 'https://www.pagopar.com/pagos/{}?forma_pago={}'.format(r.json()['token_pagopar'], identificador)

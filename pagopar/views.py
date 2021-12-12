@@ -145,7 +145,7 @@ class PagoparRequest(View):
                 checkout.transaction = "000{}".format(pago.id)
                 checkout.mount = int(float(pago.monto))
                 checkout.owner = payment_obj.owner
-                checkout.company = payment_obj.company 
+                checkout.company = payment_obj.company
                 checkout.save()
                 payment_obj.status = 'PC'
                 payment_obj.save()
