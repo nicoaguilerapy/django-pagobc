@@ -373,6 +373,12 @@ def payment_create(request):
                     return redirect('payment_list')
                 else:
                     return redirect('payment_list')
+
+            else:
+                payment_obj = form.save(commit=False)
+                payment_obj.owner = request.user
+                payment_obj.company = profile.company
+                payment_obj.save()
                 
 
 
