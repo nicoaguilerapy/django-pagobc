@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
 from core.forms import FeeForm, PaymentForm
+from pagopar.models import FormaPago
 from .models import Fee, Payment, Checkout
 from clients.models import Client
 from profiles.models import Empresa, Profile
@@ -23,6 +24,8 @@ from django.core.mail import EmailMessage, send_mail
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
+import urllib.request
+import requests
 
             
 class StaffRequired(object):
@@ -47,6 +50,21 @@ def _sendEmail(payment_id, client_email, cod, status_display):
     except:
         print("Mensaje No Enviado")
 
+def _sendEmailPagoPar(client_email, link):
+    dato_email_asunto = 'Pago generado para PagoPar'
+    try:
+        send_mail(
+                dato_email_asunto,
+                "Se generó un método de Pago en PagoPar, puede realizar el pago en el siguiente enlace\n{}".format(link),
+                client_email,
+                [client_email],
+                fail_silently=False,
+                )
+
+        print("Mensaje Enviado")
+    except:
+        print("Mensaje No Enviado")
+
 @method_decorator(login_required, name='dispatch')
 class BlankPage(TemplateView):
     template_name = 'core/blank_page.html'
@@ -62,32 +80,37 @@ def home(request):
     context = {}
     context['profile'] = profile
 
-    pagos.
+    payments = Payment.objects.filter(status = 'PP')
+    sum1 = 0
+    cant1 = 0
+    today = now()
+    for x in payments:
+        if today.month == x.date_expiration.month:
+            sum1 = sum1 + x.mount
+            cant1 = cant1 + 1
+
+    context['pagos_pendientes_monto'] = sum1
+    context['pagos_pendientes_cantidad'] = cant1
+    sum1 = 0
+    cant1 = 0
+    com = 0
+
+    checkouts = Checkout.objects.all()
+    for x in checkouts:
+        if x.date_created.month == today.month and x.transaction_anulate == None:
+            sum1 = sum1 + x.mount
+            com = com + (x.mount/100)*x.commission 
+            cant1 = cant1 + 1
 
 
+    
+    context['pagos_pagados_monto'] = sum1
+    context['pagos_pagados_comision'] = int(com)
+    context['ingreso_real'] = int(sum1 - com)
+    context['pagos_pagados_cantidad'] = cant1
+    
     return render(request, template_name, context)
 
-@method_decorator(csrf_exempt, name='dispatch')
-class Fees(View):
-    def get(self, request):
-        
-        cliente_pk = request.GET.get('cliente_pk')
-        cliente_obj = Client.objects.get(pk=cliente_pk)
-        amount_payable = request.GET.get('amount_payable')
-        amount_fees = request.GET.get('amount_fees')
-        date_created = request.GET.get('date_created')
-
-        for c in range(int(amount_fees)):
-            c = c + 1
-            pay = Payment.create(amount_payable)
-            pay.concept = 'Cuota de Producto Nº: '+str(c)
-            pay.client = cliente_obj
-            if c > 1:
-                pay.date_expiration = now() + timedelta(months=+c)
-            pay.save()
-
-
-        return HttpResponse("")
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Consult(View):
@@ -310,21 +333,48 @@ def payment_create(request):
     template_name = 'core/payment_form.html'
     form = PaymentForm(request.POST or None)
     client_list = Client.objects.filter(company = profile.company)
+    formapago_list = FormaPago.objects.all()
 
     context = {}
     context['profile'] = profile
 
     if request.method == "GET":
         context['client_list'] = client_list
+        context['formapago_list'] = formapago_list
         context['form'] = form
         return render(request, template_name, context)
 
     if request.method == "POST":
+        data = request.POST
+        print(data)
         if form.is_valid():
             payment_obj = form.save(commit=False)
             payment_obj.owner = request.user
             payment_obj.company = profile.company
-            payment_obj.save()
+
+            if data['id_type_payment'] == '2':
+                identificador = data['id_identificador']
+                payment_obj.type = 'Pagopar - {}'.format(FormaPago.objects.get(identificador = identificador).forma_pago)
+                payment_obj.save()
+                print()
+                print(payment_obj)
+                print(data['id_identificador'])
+                print(payment_obj.client.id)
+                print()
+
+
+                r = requests.post('http://127.0.0.1:8000/pagopar/payment/', data = json.dumps({"id_client":payment_obj.client.id, "id_payment":payment_obj.id, "id_identificador": identificador}))
+
+                if r.json()['cod'] == '000':
+                    link = 'https://www.pagopar.com/pagos/{}?forma_pago={}'.format(r.json()['token_pagopar'], identificador)
+                    _sendEmailPagoPar(payment_obj.client.email, link)
+                    payment_obj.hash_code = r.json()['token_pagopar']
+                    payment_obj.save()
+                    return redirect('payment_list')
+                else:
+                    return redirect('payment_list')
+                
+
 
         return redirect('payment_list')
 

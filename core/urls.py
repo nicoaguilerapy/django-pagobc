@@ -1,10 +1,9 @@
 from django.urls import path
-from .views import BlankPage, home, Consult, Fees, checkout_list, fee_create, fee_list, payment_create, payment_list, payment_update
+from .views import BlankPage, home, Consult, checkout_list, fee_create, fee_list, payment_create, payment_list, payment_update
 
 urlpatterns = [
     path('', home, name='home'),
     path('api/', Consult.as_view(), name='consult'),
-    path('make-fees/', Fees.as_view(), name='make_fees'),
     path('404/', BlankPage.as_view(), name='blank'),
 
     path('payment/create/', payment_create, name='payment_create'),

@@ -1,3 +1,7 @@
 # Iniciar virtualenv
 
 C:\GitHub\entornos\pagosbc_env\Scripts\activate
+
+#shell script
+
+exec(open('test.py').read())

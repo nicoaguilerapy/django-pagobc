@@ -68,6 +68,24 @@
                 <label for="">Estado:</label>
                 {{form.status}}
             </div>
+            <div class="form-group" id="select-payment">
+                <label for="id_type_payment" class="form-label mt-15">Tipo de Pago:</label>
+                <select class="form-control" name="id_type_payment" id="id_type_payment">
+                    <option value="1" selected>Servidor Propio</option>
+                    <option value="2">PagoPar</option>
+                </select>
+            </div>
+            <div class="form-group" id="select-identificador">
+                <label for="id_identificador" class="form-label mt-15">Tipo de Pago:</label>
+                <select class="form-control" name="id_identificador" id="id_identificador">
+                    <option value="-1" selected>-----------</option>
+                    
+                    {% for formapago in formapago_list %}
+                    <option value="{{formapago.identificador}}" selected>{{formapago.forma_pago}}</option>
+                    {% endfor %}
+                        
+                </select>
+            </div>
             <button type="submit" class="btn btn-primary">Crear Pago</button>
             {% endif %}
           </form>
@@ -76,3 +94,35 @@
 </div>
 
 {% endblock content %}
+
+
+{% block extra_script %}
+<script type="text/javascript"> 
+    $("#select-identificador").hide();
+
+    $("#select-payment").on('change', function(){
+        if($('#id_type_payment').val()=='2'){
+            $("#select-identificador").show();
+        }else{
+            $("#select-identificador").hide();
+            $('#id_type_payment').val('1')
+        }
+    });
+
+  
+    function ShowHidden() {
+      let text = "";
+      if ($("#orderButton").text()=="Abrir Seguimiento") {
+        $("#select-identificador").show();
+        text = "Ocultar Seguimiento"
+      }else{
+        $("#select-identificador").hide();
+        text = "Abrir Seguimiento"
+      }
+  
+      $("#orderButton").html(text);
+    }
+  </script>
+    
+{% endblock extra_script %}
+    

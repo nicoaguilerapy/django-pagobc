@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Checkout{% endblock title %}
+{% block content %} 
+
+<section class="page-title-area bg-img" data-bg-img="">
+	<div class="container">
+	  <div class="row">
+		<div class="col-lg-12">
+		  <div class="page-title-content">
+			</div>
+		</div>
+	  </div>
+	</div>
+  </section>
+
+{% if cod != '500' %}
+  
+  {% if cod == '000' %}
+  <center><h1>Su Orden de Pago fue generado</h1></center>
+  <br><br>
+    <div class="d-flex justify-content-center">
+    <div class="col-md-6">
+        <div class="row">
+            <h3>El enlace fue enviado al correo de su Cliente</h3>
+            <p>https://www.pagopar.com/pagos/{{token_pagopar}}?forma_pago={{identificador}}</p>
+
+            </div>
+    </div>
+    </div><br><br>
+  {% endif %}
+{% else %}
+<center><h1>Error al Generar Pago</h1></center>
+<br><br>
+  <div class="d-flex justify-content-center">
+  <div class="col-md-6">
+      <div class="row">
+          <p>{{message}}</p>
+        </div>
+  </div>
+  </div><br><br>
+{% endif %}
+
+
+{% endblock content %} 

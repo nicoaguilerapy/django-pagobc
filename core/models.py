@@ -3,6 +3,8 @@ from itertools import chain
 from django.utils.timezone import now
 from datetime import *
 from datetime import timedelta
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from clients.models import Client
 from profiles.models import CustomUser, Empresa
 
@@ -20,16 +22,22 @@ STATUS_CHOICES = (
 )
 
 
+
+
 class Payment(models.Model):
     id = models.AutoField(primary_key = True)
+    ref_code = models.CharField('Codigo de Referencia', max_length = 20, blank = True, null = True)
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True)
     concept =  models.CharField('Concepto', max_length = 255, blank = False, null = False)
     mount = models.IntegerField('Monto', blank = False, null = False)
     status =  models.CharField('Estado', choices=STATUS_CHOICES, max_length=2, default='PE')
     date_created = models.DateTimeField('Fecha Creación', auto_now_add = True)
-    date_expiration = models.DateTimeField('Fecha Vencimiento', default=(now() + timedelta(hours = 72)))
+    date_expiration = models.DateTimeField('Fecha Vencimiento', null=True, blank=True)
+    type =  models.CharField('Origen', max_length = 255, default = "Servidor Propio")
+    hash_code = models.CharField('Hash Pago', max_length = 64, null=True, blank=True)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
     owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    
 
     class Meta:
         verbose_name = 'Pago'
@@ -61,6 +69,7 @@ class Checkout(models.Model):
     transaction = models.CharField('Nº Transacción', blank = True, null = True, max_length = 255,)
     transaction_anulate = models.CharField('Nº Transacción de Anulación', blank = True, null = True, max_length = 255,)
     date_created = models.DateTimeField(auto_now_add = True)
+    commission = models.IntegerField('Comisión', default = 3)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
     owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
 
@@ -85,3 +94,11 @@ class Fee(models.Model):
         pay_list = Payment.objects.filter(concept__contains = 'Cuota ID: {}'.format(self.id), status = 'PC')
         print(pay_list)
         return pay_list.count()
+
+@receiver(post_save, sender=Payment)
+def ensure_payment_exists(sender, instance, **kwargs):
+    if kwargs.get('created', False):
+        instance.date_expiration = now() + timedelta(hours = 72)
+        instance.ref_code = "000{}".format(instance.id)
+        instance.save()
+        

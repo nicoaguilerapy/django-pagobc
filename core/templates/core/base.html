@@ -38,7 +38,7 @@
     <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
       <!-- Sidebar - Brand -->
-      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
         <div class="sidebar-brand-icon rotate-n-15">
           <i class="fas fa-laugh-wink"></i>
         </div>
@@ -50,7 +50,7 @@
 
       <!-- Nav Item - Dashboard -->
       <li class="nav-item active">
-        <a class="nav-link" href="index.html">
+        <a class="nav-link" href="{% url 'home' %}">
           <i class="fas fa-fw fa-tachometer-alt"></i>
           <span>Panel Principal</span></a>
       </li>
@@ -66,7 +66,7 @@
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
-          <i class="fas fa-fw fa-cog"></i>
+          <i class="fas fa-receipt"></i>
           <span>Pagos</span>
         </a>
         <div id="collapse1" class="collapse" aria-labelledby="heading1" data-parent="#accordionSidebar">
@@ -84,7 +84,7 @@
       {% if profile.type == 'VE' or profile.type == 'AD' %}
       <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse2" aria-expanded="true" aria-controls="collapse2">
-          <i class="fas fa-fw fa-wrench"></i>
+          <i class="fas fa-list-ul"></i>
           <span>Cuotas</span>
         </a>
         <div id="collapse2" class="collapse" aria-labelledby="heading2" data-parent="#accordionSidebar">
@@ -98,7 +98,7 @@
 
       <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse3" aria-expanded="true" aria-controls="collapse3">
-          <i class="fas fa-fw fa-wrench"></i>
+          <i class="fas fa-user-friends"></i>
           <span>Clientes</span>
         </a>
         <div id="collapse3" class="collapse" aria-labelledby="heading3" data-parent="#accordionSidebar">
@@ -114,7 +114,7 @@
       <!-- Nav Item - Tables -->
       <li class="nav-item">
         <a class="nav-link" href="{% url 'checkout_list' %}">
-          <i class="fas fa-fw fa-table"></i>
+          <i class="fas fa-money-bill-wave-alt"></i>
           <span>Transacciones</span></a>
       </li>
         
@@ -126,7 +126,7 @@
       <!-- Nav Item - Tables -->
       <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse4" aria-expanded="true" aria-controls="collapse4">
-          <i class="fas fa-fw fa-wrench"></i>
+          <i class="fas fa-user-shield"></i>
           <span>Usuarios</span>
         </a>
         <div id="collapse4" class="collapse" aria-labelledby="heading2" data-parent="#accordionSidebar">
@@ -143,7 +143,7 @@
       <!-- Nav Item - Tables -->
       <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse5" aria-expanded="true" aria-controls="collapse5">
-          <i class="fas fa-fw fa-wrench"></i>
+          <i class="fas fa-user"></i>
           <span>Mi Perfil</span>
         </a>
         <div id="collapse5" class="collapse" aria-labelledby="heading2" data-parent="#accordionSidebar">

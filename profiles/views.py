@@ -49,6 +49,7 @@ def profile_create(request):
     context = {}
     context['form'] = form
     if request.method == 'GET':
+        context['profile'] = profile
         return render(request, template_name, context)
 
     if request.method == 'POST':
@@ -92,6 +93,7 @@ def profile_update(request, *args, **kwargs):
         context = {}
         context['form'] = form
         context['profile_obj'] = profile_obj
+        context['profile'] = profile
 
         if request.method == 'GET':
             return render(request, template_name, context)
@@ -121,8 +123,10 @@ def profile_list(request):
         return redirect('home')
 
     if request.method == "GET":
+        context = {}
         template_name = 'profiles/profile_list.html'
         profile_list = Profile.objects.filter(company = profile.company)
-        context={ "profile_list" : profile_list }
+        context['profile_list'] = profile_list
+        context['profile'] = profile
 
         return render(request, template_name, context)
