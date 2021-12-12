@@ -13,12 +13,18 @@ from clients.models import Client
 from profiles.models import Ciudad, Departamento, Profile
 
 def client_create(request):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
+
+    context = {}
+    context['profile'] = profile
     template_name = 'clients/client_form.html'
     form = ClientForm(request.POST or None)
 
     if request.method == "GET":
-        context={ "form":form}
+        context['form'] = form
         return render(request, template_name, context)
 
     if request.method == "POST":
@@ -26,34 +32,49 @@ def client_create(request):
         if form.is_valid():
             client_obj = form.save(commit=False)
             client_obj.owner = request.user
-            client_obj.company = profile_obj.company
+            client_obj.company = profile.company
             client_obj.save()
 
         return redirect('client_list')
 
 def client_list(request):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
+
+    context = {}
+    context['profile'] = profile
     if request.method == "GET":
-        client_list = Client.objects.filter(company = profile_obj.company)
+        client_list = Client.objects.filter(company = profile.company)
         template_name = 'clients/client_list.html'
-        context={ "client_list":client_list }
+        context['client_list'] = client_list
 
         return render(request, template_name, context)
 
 
 
 def client_update(request, *args, **kwargs):
-    profile_obj = Profile.objects.get(user = request.user)
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
+
+    context = {}
+    context['profile'] = profile
+
     template_name = 'clients/client_form.html'
     form = ClientForm(request.POST or None)
     client_obj = Client.objects.get(id=kwargs.get('id'))
 
-    if client_obj.company != profile_obj.company:
+    if client_obj.company != profile.company:
         return redirect('home')
 
     if request.method == "GET":
         form = ClientForm(instance=client_obj)
-        context={"form":form, "client_obj":client_obj}
+
+        context['form'] = form
+        context['client_obj'] = client_obj
         print()
         print(context)
         print()
