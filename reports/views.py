@@ -26,15 +26,18 @@ def report_checkout(request):
     com = 0
     today = now()
 
-    checkout_list = Checkout.objects.all()
-    context['checkout_list'] = checkout_list
+    list = Checkout.objects.all()
+    
+    checkout_list = []
 
-    for x in checkout_list:
+    for x in list:
         if x.date_created.month == today.month and x.transaction_anulate == None:
+            checkout_list.append(x)
             sum1 = sum1 + x.mount
             com = com + (x.mount/100)*x.commission 
             cant1 = cant1 + 1
 
+    context['checkout_list'] = checkout_list
     context['monto_total'] = sum1
     context['comision'] = com
     context['ingreso_real'] = sum1 - com
@@ -65,18 +68,21 @@ def report_payment(request):
     context = {}
 
 
-    payment_list = Payment.objects.filter(status = 'PP', company = profile.company)
-    context['payment_list'] = payment_list
+    list = Payment.objects.filter(status = 'PP', company = profile.company)
 
     payments = Payment.objects.filter(status = 'PP', company = profile.company)
     sum1 = 0
     cant1 = 0
     today = now()
-    for x in payments:
+    payment_list = []
+    
+    for x in list:
         if today.month == x.date_expiration.month:
+            payment_list.append(x)
             sum1 = sum1 + x.mount
             cant1 = cant1 + 1
 
+    context['payment_list'] = payment_list
     context['pagos_pendientes_monto'] = sum1
     context['pagos_pendientes_cantidad'] = cant1
 
