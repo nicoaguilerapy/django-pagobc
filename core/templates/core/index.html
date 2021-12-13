@@ -5,10 +5,12 @@
     Inicio
 {% endblock title1 %}
 {% block title2 %}
-    Inicio
+  
 {% endblock title2 %}
+
     
 {% block content %}
+
   <!-- Earnings (Monthly) Card Example -->
   <div class="col-xl-3 col-md-6 mb-4">
     <div class="card border-left-primary shadow h-100 py-2">
@@ -21,6 +23,11 @@
           <div class="col-auto">
             <i class="fas fa-calendar fa-2x text-gray-300"></i>
           </div>
+
+        </div>
+        <div class="row">
+          <br>
+          <center><a href="{% url 'report_payment' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-download fa-sm text-white-50"></i> Generar reporte</a></center>
         </div>
       </div>
     </div>
@@ -38,6 +45,9 @@
           <div class="col-auto">
             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
           </div>
+        </div><div class="row">
+          <br>
+          <center><a href="{% url 'report_checkout' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i class="fas fa-download fa-sm text-white-50"></i> Generar reporte</a></center>
         </div>
       </div>
     </div>
@@ -74,7 +84,6 @@
       </div>
     </div>
   </div>
-   
 
 {% endblock content %}
     

@@ -26,7 +26,6 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
 import urllib.request
 import requests
-
             
 class StaffRequired(object):
     
@@ -80,7 +79,7 @@ def home(request):
     context = {}
     context['profile'] = profile
 
-    payments = Payment.objects.filter(status = 'PP')
+    payments = Payment.objects.filter(status = 'PP', company = profile.company)
     sum1 = 0
     cant1 = 0
     today = now()
@@ -513,3 +512,5 @@ def checkout_list(request):
         context['profile'] = profile
 
         return render(request, template_name, context)
+
+

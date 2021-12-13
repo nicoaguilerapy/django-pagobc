@@ -14,5 +14,6 @@ urlpatterns = [
     path('fee/list/', fee_list, name='fee_list'),
 
     path('checkout/list/', checkout_list, name='checkout_list'),
+    path('checkout/list/', checkout_list, name='checkout_list'),
 
 ]

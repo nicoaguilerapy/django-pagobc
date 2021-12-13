@@ -25,3 +25,6 @@ class Client(models.Model):
 
     def __str__(self):
         return "{}, {}".format(self.first_name, self.last_name)
+
+    def getName(self):
+        return "{}, {}".format(self.first_name, self.last_name)

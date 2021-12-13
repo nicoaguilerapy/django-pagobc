@@ -23,6 +23,7 @@ urlpatterns = [
     path('client/', include('clients.urls')),
     path('profiles/', include('profiles.urls')),
     path('pagopar/', include('pagopar.urls')),
+    path('reports/', include('reports.urls')),
 ]
 
 from django.conf import settings

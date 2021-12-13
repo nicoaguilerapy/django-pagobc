@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'clients',
     'profiles',
     'pagopar',
+    'reports',
 ]
 
 

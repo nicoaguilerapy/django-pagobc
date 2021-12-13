@@ -1,0 +1,39 @@
+{% load humanize %}
+<h1>Reporte de Transacciones del Mes</h1>
+<br>
+<br>
+
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Cliente</th>
+        <th scope="col">Contacto</th>
+        <th scope="col">Método de Pago</th>
+        <th scope="col">Monto</th>
+        <th scope="col">Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      {% for check in checkout_list %}
+      <tr>
+        <th scope="row">{{check.id}}</th>
+        <td><center>{{check.payment.client.getName}}</center></td>
+        <td><center>{{check.payment.client.phone1}}</center></td>
+        <td><center>{{check.payment.type}}</center></td>
+        <td><center>{{check.payment.mount|intcomma}}</center></td>
+        <td><center>{{check.payment.date_created}}</center></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+    
+  <br>
+  <h3>
+    <center><b>Monto Total: </b><p style="color:blue;">₲. {{monto_total|intcomma}}</p>
+        <b>Comisión: </b> <p style="color:red;">- ₲. {{comision|intcomma}}</p>
+        <b>Ingreso Real: </b> <p style="color:rgb(24, 160, 70);">₲. {{ingreso_real|intcomma}}</p></center>
+  </h3>
+
+  
