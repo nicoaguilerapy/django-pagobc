@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'profiles',
     'pagopar',
     'reports',
+    'api',
 ]
 
 

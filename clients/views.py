@@ -1,4 +1,5 @@
 
+from django.http.response import HttpResponse
 from django.utils.timezone import now
 from datetime import *
 from datetime import timedelta
@@ -11,6 +12,8 @@ from django.contrib.auth.decorators import login_required
 from clients.forms import ClientForm
 from clients.models import Client
 from profiles.models import Ciudad, Departamento, Profile
+from django.db.models import Q
+import json
 
 @login_required()
 def client_create(request):
@@ -53,6 +56,29 @@ def client_list(request):
         context['client_list'] = client_list
 
         return render(request, template_name, context)
+
+    if request.method == "POST" and request.is_ajax():
+        response_data = {}
+        
+        received_json_data=json.loads(request.body)
+        print(received_json_data)
+
+        client_obj = Client.objects.filter(company = profile.company, document = received_json_data['search_document']).first()
+
+        if client_obj:
+            client_data = []
+            client_data.append(client_obj)
+
+            response_data['cod'] = '000'
+            response_data['client'] = client_data
+            
+
+        else:
+            response_data['cod'] = '001'
+            response_data['message'] = 'Cliente no Encontrado'
+
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
 
 @login_required()
 def client_update(request, *args, **kwargs):

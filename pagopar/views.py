@@ -102,7 +102,6 @@ def create_payment(request):
 
             return JsonResponse({"cod":"000","message": "Pago creado con éxito", "identificador": formapago_obj.identificador, "token_pagopar": r.json()['resultado'][0]['data']}, status=200, safe=False)
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class PagoparRequest(View):
     def post(self, request):

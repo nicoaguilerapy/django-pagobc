@@ -80,10 +80,12 @@ class Ciudad(models.Model):
 class Empresa(models.Model):
     id = models.AutoField(primary_key = True)
     nombre = models.CharField('Nombre', max_length = 220, blank = True, null = True)
+    servidor_propio = models.BooleanField('Servidor Propio', default= True)
     admin = models.ForeignKey(CustomUser, on_delete = models.CASCADE, blank = True, null = True)
     cod_servicio = models.CharField('Código de Servicio', max_length = 220, blank = True, null = True)
     usuario = models.CharField('Usuario', max_length = 220, blank = True, null = True)
     password = models.CharField('Contraseña', max_length = 220, blank = True, null = True)
+    servidor_pagopar = models.BooleanField('Servidor PagoPar', default= True)
     token_publico = models.CharField('token publico', max_length = 220, blank = True, null = True)
     token_privado = models.CharField('token privado', max_length = 220, blank = True, null = True)
 

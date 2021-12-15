@@ -12,17 +12,7 @@ STATUS_CHOICES = (
     ('PP', 'Pago Pendiente'),
     ('PC', 'Pago Completado'),
     ('PA', 'Pago Anulado'),
-    ('CA', 'Cancelado'),
-    ('RE', 'Recibido'),
-    ('EM', 'Empaquetado'),
-    ('EC', 'En Camino'),
-    ('LR', 'Listo Para Retiro'),
-    ('PL', 'Problemas Logísticos'),
-    ('RE', 'Retirado'),
 )
-
-
-
 
 class Payment(models.Model):
     id = models.AutoField(primary_key = True)
@@ -69,6 +59,7 @@ class Checkout(models.Model):
     transaction_anulate = models.CharField('Nº Transacción de Anulación', blank = True, null = True, max_length = 255,)
     date_created = models.DateTimeField(auto_now_add = True)
     commission = models.IntegerField('Comisión', default = 3)
+    type =  models.CharField('Origen', max_length = 255, blank = True, null = True)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
 
     class Meta:

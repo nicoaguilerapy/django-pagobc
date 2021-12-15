@@ -4,11 +4,20 @@ from datetime import datetime
 from datetime import timedelta
 from profiles.models import Ciudad, CustomUser, Departamento, Empresa
 
+STATUS_CHOICES = (
+    ('CI', 'Cedula de Identidad'),
+    ('RU', 'Registro Unico del Contribuyente'),
+    ('PA', 'Pasaporte'),
+    ('OT', 'Otros'),
+)
+
 class Client(models.Model):
     id = models.AutoField(primary_key = True)
-    document = models.CharField('Documento',max_length = 20, blank = False, null = False)
-    first_name = models.CharField('Nombres', max_length = 200, blank = False, null = False)
+    document = models.CharField('Documento',max_length = 20, blank = True, null = True)
+    type_document = models.CharField('Estado', choices=STATUS_CHOICES, max_length=2, default='CI')
+    first_name = models.CharField('Nombres', max_length = 200, blank = True, null = True)
     last_name = models.CharField('Apellidos', max_length = 220, blank = False, null = False)
+    business_name =  models.CharField('Razón Social', max_length = 220, blank = True, null = True)
     region = models.ForeignKey(Departamento, on_delete=models.SET_NULL, null=True)
     city = models.ForeignKey(Ciudad, on_delete=models.SET_NULL, null=True)
     phone1 = models.CharField('Celular Principal', max_length = 10, blank = True, null = True)
@@ -28,3 +37,6 @@ class Client(models.Model):
 
     def getName(self):
         return "{}, {}".format(self.first_name, self.last_name)
+
+    def get_type_document(self):
+        return self.type_document.get_status_display()
