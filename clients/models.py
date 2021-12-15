@@ -6,7 +6,7 @@ from profiles.models import Ciudad, CustomUser, Departamento, Empresa
 
 class Client(models.Model):
     id = models.AutoField(primary_key = True)
-    document = models.IntegerField('Documento', blank = False, null = False)
+    document = models.CharField('Documento',max_length = 20, blank = False, null = False)
     first_name = models.CharField('Nombres', max_length = 200, blank = False, null = False)
     last_name = models.CharField('Apellidos', max_length = 220, blank = False, null = False)
     region = models.ForeignKey(Departamento, on_delete=models.SET_NULL, null=True)
@@ -16,7 +16,7 @@ class Client(models.Model):
     email = models.EmailField('Correo Electrónico', blank = True, null = True)
     date_created = models.DateTimeField(auto_now_add = True)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
-    owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    visibility = models.BooleanField('Visible', default = True)
 
     class Meta:
         verbose_name = 'Cliente'

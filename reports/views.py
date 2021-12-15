@@ -16,6 +16,7 @@ from django.utils.timezone import now
 from datetime import *
 from datetime import timedelta
 
+@login_required()
 def report_checkout(request):
     template_path = 'reports/checkout.html'
     context = {}
@@ -57,7 +58,7 @@ def report_checkout(request):
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
 
-
+@login_required()
 def report_payment(request):
     try:
         profile = Profile.objects.get(user = request.user, active = True)

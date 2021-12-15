@@ -9,7 +9,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
 from core.forms import FeeForm, PaymentForm
 from pagopar.models import FormaPago
-from .models import Fee, Payment, Checkout
+from .models import Fee, Payment, Checkout, STATUS_CHOICES
 from clients.models import Client
 from profiles.models import Empresa, Profile
 import json
@@ -26,6 +26,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
 import urllib.request
 import requests
+from django.utils.timezone import make_aware
             
 class StaffRequired(object):
     
@@ -111,9 +112,11 @@ def home(request):
     return render(request, template_name, context)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class Consult(View):
-    def get(self, request):
+
+def consult(request, *args, **kwargs):
+
+    if request.method == "GET":
+        empresa_obj = Empresa.objects.get(id=kwargs.get('id'))
         response_data = {}
         today = timezone.now()
         user = "admin"
@@ -184,7 +187,7 @@ class Consult(View):
         response_data['desRetorno'] = 'Error en el proceso'
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-    def post(self, request):
+    if request.method == "POST":
         response_data = {}
         detail_data = {}
         today = timezone.now()
@@ -329,59 +332,138 @@ def payment_create(request):
     except:
         return redirect('blank')
 
+    form = PaymentForm()
     template_name = 'core/payment_form.html'
-    form = PaymentForm(request.POST or None)
     client_list = Client.objects.filter(company = profile.company)
     formapago_list = FormaPago.objects.all()
 
     context = {}
     context['profile'] = profile
+    context['form'] = form
+    context['status'] = STATUS_CHOICES
 
-    if request.method == "GET":
+
+    if request.method == "GET" :
+        
+        context['date_expiration'] = now() + timedelta(hours=72)
         context['client_list'] = client_list
         context['formapago_list'] = formapago_list
-        context['form'] = form
         return render(request, template_name, context)
 
-    if request.method == "POST":
-        data = request.POST
-        print(data)
-        if form.is_valid():
-            payment_obj = form.save(commit=False)
-            payment_obj.owner = request.user
-            payment_obj.company = profile.company
+    if request.method == "POST" and request.is_ajax():
+        payment_obj = Payment.objects.create(mount = 0)
 
-            if data['id_type_payment'] == '2':
-                identificador = data['id_identificador']
+        received_json_data=json.loads(request.body)
+        print(received_json_data)
+
+        response_data = {}
+        error_messages = []
+
+        try:
+            client= int(received_json_data['client'])
+            concept = received_json_data['concept']
+            mount = int(received_json_data['mount'])
+            status = received_json_data['status']
+            type_payment = int(received_json_data['type_payment'])
+            identificador = int(received_json_data['identificador'])
+            datepicker = received_json_data['datepicker']
+        except:
+            response_data['cod'] = '909'
+            response_data['message'] = 'Error de Request'
+            return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+        if client < 1 or client == None:
+            response_data['cod'] = '999'
+            error_messages.append('Ingrese un Cliente')
+        elif concept == '' or concept == None:
+            response_data['cod'] = '999'
+            error_messages.append('Ingrese un Concepto')
+        elif mount <= 0 or mount == None:
+            response_data['cod'] = '999'
+            error_messages.append('Ingrese un Monto')
+        elif status == '' or status == None or status != 'PP':
+            response_data['cod'] = '999'
+            error_messages.append('Ingrese un Estado')
+        elif type_payment < 0 or type_payment == None:
+            response_data['cod'] = '999'
+            error_messages.append('Ingrese un Tipo de Pago')
+        elif (identificador < -1 or identificador == None and identificador == 0) and type_payment == 2:
+            response_data['cod'] = '999'
+            error_messages.append('Ingrese un Tipo de PagoPar')
+
+        try:
+           date_expiration = make_aware(datetime.strptime(datepicker, '%d/%m/%Y'))
+        except:
+            response_data['cod'] = '999'
+            error_messages.append('Ingrese un Tipo de Fecha Válida')
+
+        if not response_data:
+            payment_obj.concept = concept
+            payment_obj.client = Client.objects.get(id = client)
+            payment_obj.mount = mount
+            payment_obj.status = status
+            payment_obj.date_expiration = date_expiration
+            payment_obj.company = profile.company
+            id = payment_obj.save()
+
+            if type_payment == 2:
                 payment_obj.type = 'Pagopar - {}'.format(FormaPago.objects.get(identificador = identificador).forma_pago)
                 payment_obj.save()
-                print()
-                print(payment_obj)
-                print(data['id_identificador'])
-                print(payment_obj.client.id)
-                print()
 
-
-                r = requests.post('http://127.0.0.1:8000/pagopar/payment/', data = json.dumps({"id_client":payment_obj.client.id, "id_payment":payment_obj.id, "id_identificador": identificador}))
+                r = requests.post('http://127.0.0.1:8000/pagopar/payment/', data = json.dumps({"id_client":payment_obj.client.id, "id_payment":payment_obj.pk, "id_identificador": identificador}))
 
                 if r.json()['cod'] == '000':
                     link = 'https://www.pagopar.com/pagos/{}?forma_pago={}'.format(r.json()['token_pagopar'], identificador)
                     _sendEmailPagoPar(payment_obj.client.email, link)
                     payment_obj.hash_code = r.json()['token_pagopar']
                     payment_obj.save()
-                    return redirect('payment_list')
+                    
                 else:
-                    return redirect('payment_list')
+                    response_data['cod'] = '909'
+                    response_data['message'] = 'Error de pagopar'
 
-            else:
-                payment_obj = form.save(commit=False)
-                payment_obj.owner = request.user
-                payment_obj.company = profile.company
-                payment_obj.save()
+            response_data['cod'] = '000'
+            response_data['message'] = 'Ingresado'
+            return HttpResponse(json.dumps(response_data), content_type="application/json")
+        else:
+            response_data['message'] = error_messages
+            return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+        # if form.is_valid():
+        #     payment_obj = form.save(commit=False)
+        #     payment_obj.owner = request.user
+        #     payment_obj.company = profile.company
+        #     if data['id_type_payment'] == '2':
+        #         identificador = data['id_identificador']
+        #         payment_obj.type = 'Pagopar - {}'.format(FormaPago.objects.get(identificador = identificador).forma_pago)
+        #         payment_obj.save()
+        #         print()
+        #         print(payment_obj)
+        #         print(data['id_identificador'])
+        #         print(payment_obj.client.id)
+        #         print()
+
+
+        #         r = requests.post('http://127.0.0.1:8000/pagopar/payment/', data = json.dumps({"id_client":payment_obj.client.id, "id_payment":payment_obj.id, "id_identificador": identificador}))
+
+        #         if r.json()['cod'] == '000':
+        #             link = 'https://www.pagopar.com/pagos/{}?forma_pago={}'.format(r.json()['token_pagopar'], identificador)
+        #             _sendEmailPagoPar(payment_obj.client.email, link)
+        #             payment_obj.hash_code = r.json()['token_pagopar']
+        #             payment_obj.save()
+        #             return redirect('payment_list')
+        #         else:
+        #             return redirect('payment_list')
+
+        #     else:
+        #         payment_obj = form.save(commit=False)
+        #         payment_obj.owner = request.user
+        #         payment_obj.company = profile.company
+        #         payment_obj.save()
                 
 
 
-        return redirect('payment_list')
+    return redirect('payment_list')
 
 @login_required()
 def payment_list(request):

@@ -3,126 +3,175 @@
 {% block title1 %}
     Nuevo Pago
 {% endblock title1 %}
-{% block title2 %}
-    Pago
-{% endblock title2 %}
-    
+
+{% block extra_css %}
+  
+{% endblock extra_css %}
+
 {% block content %}
-
-<div class="container">
-    <div class="row">
-        <form method="POST" >
+<div class="card shadow mb-8">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Dropdown Card Example</h6>
+      <div class="dropdown no-arrow">
+        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+          <div class="dropdown-header">Dropdown Header:</div>
+          <a class="dropdown-item" href="#">Action</a>
+          <a class="dropdown-item" href="#">Another action</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Something else here</a>
+        </div>
+      </div>
+    </div>
+    <!-- Card Body -->
+    <div class="card-body">
+        <form method="POST" id="form-payment" >
             {% csrf_token %}
-            
-            {% if client_obj %}
             <div class="form-group">
                 <label for="">Cliente:</label>
-                <select name="client" class="selectpicker form-control" id="client" readonly>
-                <option value="{{client_obj.id}}" selected>{{client_obj}}</option>
-                </select>
-
-                <div class="form-group">
-                    <label for="">Concepto:</label>
-                    <input type="text" name="concept" class="form-control" value="{{payment_obj.concept}}" id="concept" maxlength="20" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="">Monto:</label>
-                    <input type="number" name="mount" class="form-control" value="{{payment_obj.mount}}" id="mount" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="">Fecha de Vencimiento:</label>
-                    <input type="text" name="date_expiration" value="{{payment_obj.date_expiration}}" class="form-control" placeholder="" id="date_expiration" readonly aria-label="Default select example" maxlength="30">
-                </div>
-                <div class="form-group">
-                    <label for="">Estado:</label>
-                {% if payment_obj.status == 'CA' %}
-                <input type="text" name="concept" class="form-control" value="{{payment_obj.get_status_display}}" id="concept" maxlength="20" readonly>
-                </div>
-                {% else %}
-                {{form.status}}
-                </div>
-                <button type="submit" class="btn btn-primary">Modificar Pago</button>
-                {% endif %}
-
-            </div>
-            {% else %} 
-            <div class="form-group">
-                <label for="">Cliente:</label>
-                <select name="client" class="selectpicker form-control" id="client" required>
-                <option value="" selected>---------</option>
+                <select name="client" class="form-control" id="client" required>
+                <option value="-1" selected>----Seleccione un Cliente----</option>
                 {% for client in client_list %}
                 <option value="{{client.id}}">{{client}}</option>
                 {% endfor %}
                 </select>
             </div>
-            
             <div class="form-group">
                 <label for="">Concepto:</label>
-                {{form.concept}}
+                <input type="text" name="concept" {% if not payment_obj %} placeholder="Ingrese el Concepto" {% endif %} class="form-control" value="{{payment_obj.concept}}" required id="concept">
             </div>
+    
             <div class="form-group">
                 <label for="">Monto:</label>
-                {{form.mount}}
+                <input type="number" name="mount" class="form-control" value="{% if payment_obj %}{{payment_obj.mount}}{% else %}0{% endif %}" required id="mount">
             </div>
-            <div class="form-group">
-                <label for="">Estado:</label>
-                {{form.status}}
+    
+            <div class="form-group" id="select-status">
+                <label for="status" class="form-label mt-15">Estado</label>
+                <select class="form-control" name="status" id="status">
+                    {% if not payment_obj %}
+                    <option value="PP" selected>Pago Pendiente</option>
+                    {% else %}
+                        {% for st in status %}
+                            <option value="{{st.0}}" {% if st.0 == payment_obj.status %} required {% endif %}>{{st.1}}</option>
+                        {% endfor %} 
+                    {% endif %}
+                    
+                </select>
             </div>
-            <div class="form-group" id="select-payment">
-                <label for="id_type_payment" class="form-label mt-15">Tipo de Pago:</label>
-                <select class="form-control" name="id_type_payment" id="id_type_payment">
+    
+            <div class="form-group" id="select-type-payment">
+                <label for="type_payment" class="form-label mt-15">Tipo de Pago:</label>
+                <select class="form-control" name="type_payment" id="type_payment">
                     <option value="1" selected>Servidor Propio</option>
                     <option value="2">PagoPar</option>
                 </select>
             </div>
+    
             <div class="form-group" id="select-identificador">
-                <label for="id_identificador" class="form-label mt-15">Tipo de Pago:</label>
-                <select class="form-control" name="id_identificador" id="id_identificador">
+                <label for="identificador" class="form-label mt-15">Método de Pago:</label>
+                <select class="form-control" name="identificador" id="identificador">
                     <option value="-1" selected>-----------</option>
-                    
                     {% for formapago in formapago_list %}
-                    <option value="{{formapago.identificador}}" selected>{{formapago.forma_pago}}</option>
-                    {% endfor %}
-                        
+                    <option value="{{formapago.identificador}}">{{formapago.forma_pago}}</option>
+                    {% endfor %}    
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Crear Pago</button>
-            {% endif %}
-          </form>
-        
+    
+            <div class="form-group">
+                <label for="">Fecha de Vencimiento:</label>
+                <input type="text" name="datepicker" class="form-control" value="{{payment_obj.mount}}" required id="datepicker">
+            </div>
+    
+            <ahref="#" onclick="sendForm();return false;" class="btn btn-success btn-icon-split">
+                <span class="icon text-white-50">
+                  <i class="fas fa-check"></i>
+                </span>
+                <span style="color:white" class="text">Crear Pago</span>
+              </a>
+          </form> 
     </div>
-</div>
+  </div>
+
+  <!-- Card Body -->
+
+   
+
+
 
 {% endblock content %}
 
 
 {% block extra_script %}
-<script type="text/javascript"> 
+
+<script type="text/javascript">
+
     $("#select-identificador").hide();
 
-    $("#select-payment").on('change', function(){
-        if($('#id_type_payment').val()=='2'){
+    $("#type_payment").on('change', function(){
+        if($('#type_payment').val()=='2'){
             $("#select-identificador").show();
         }else{
             $("#select-identificador").hide();
-            $('#id_type_payment').val('1')
+            $('#type_payment').val('1')
         }
     });
 
-  
-    function ShowHidden() {
-      let text = "";
-      if ($("#orderButton").text()=="Abrir Seguimiento") {
-        $("#select-identificador").show();
-        text = "Ocultar Seguimiento"
-      }else{
-        $("#select-identificador").hide();
-        text = "Abrir Seguimiento"
-      }
-  
-      $("#orderButton").html(text);
+    $(document).keyup(function(event) {
+    if (event.which === 13) {
+        sendForm();
     }
-  </script>
-    
+});
+
+</script>
+<script type="text/javascript">
+
+    function sendForm() {
+        var send_obj = {
+            client: $("#client").val(),
+            concept: $("#concept").val(),
+            mount: $("#mount").val(),
+            status: $("#status").val(),
+            type_payment: $("#type_payment").val(),
+            identificador: $("#identificador").val(),
+            datepicker: $("#datepicker").val()
+            };
+
+            console.log(send_obj)
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'payment_create' %}',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            data: JSON.stringify(send_obj),
+            headers: {'X-CSRFToken':getCookie('csrftoken')},
+            success:function(data){
+                if(data.cod == "000"){
+                    console.log('agregado')
+                    alertSucces('crear Pago', data.message);
+                }
+                else{
+                    console.log(data.message)
+                    alertError('Crear Pago', JSON.parse(JSON.stringify(data.message)));
+                }
+            },
+              error:function(){     
+                alertError('error', 'Error Inesperado del Servidor');
+              }
+            });
+        }
+    </script>
+
+<script>
+    $('#datepicker').datepicker({
+      dateFormat: "dd/mm/yy"
+  });
+</script>
+
+
+
 {% endblock extra_script %}
-    

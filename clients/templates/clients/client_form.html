@@ -50,6 +50,14 @@ Cliente
                 <label for="">Número de Contacto:</label>
                 {{form.phone2}}
             </div>
+            <div class="form-group">
+                <input type="checkbox" name="visibility" id="visibility" 
+                {% if client_obj.visibility %}
+                checked
+                {% endif %}
+                    >
+                <label class="form-check-label" for="visibility">Activado</label>
+            </div>
             {% if client_obj %}
             <button type="submit" class="btn btn-primary">Modificar Cliente</button>
             {% else %}

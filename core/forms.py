@@ -1,40 +1,8 @@
 from django import forms
 from .models import *
-from clients.models import Client
 
-class PaymentForm(forms.ModelForm):
-    class Meta:
-        model = Payment
-        fields = ['client','concept', 'mount', 'status']
-
-        widgets = {
-            'client': forms.Select(
-                attrs = {
-                    'class':'selectpicker form-control',
-                    'id': 'client'
-                }
-            ),
-            'concept': forms.TextInput(
-                attrs = {
-                    'class':'form-control',
-                    'placeholder':'Ingrese un concepto',
-                    'id': 'concept'
-                }
-            ),
-            'mount': forms.NumberInput(
-                attrs = {
-                    'class':'form-control',
-                    'placeholder':'Ingrese el Monto Fijo',
-                    'id': 'mount'
-                }
-            ),
-            'status': forms.Select(
-                attrs = {
-                    'class':'selectpicker form-control',
-                    'id': 'status'
-                }
-            ),
-        }
+class DateInput(forms.DateInput):
+    input_type = 'date'
 
 class FeeForm(forms.ModelForm):
     class Meta:
@@ -64,4 +32,36 @@ class FeeForm(forms.ModelForm):
             ),
         }
 
+    date = forms.DateTimeField(
+        input_formats=['%d/%m/%Y %H:%M'],
+        widget=forms.DateTimeInput(attrs={
+            'class': 'form-control datetimepicker-input',
+            'data-target': '#datetimepicker1'
+        })
+    )
 
+    date = forms.DateTimeField(
+        input_formats=['%d/%m/%Y %H:%M'],
+        widget=forms.DateTimeInput(attrs={
+            'class': 'form-control datetimepicker-input',
+            'data-target': '#datetimepicker1'
+        })
+    )
+
+
+
+    date = forms.DateTimeField(
+        input_formats=['%d/%m/%Y %H:%M'],
+        widget=forms.DateTimeInput(attrs={
+            'class': 'form-control datetimepicker-input',
+            'data-target': '#datetimepicker1'
+        })
+    )
+
+class PaymentForm(forms.Form):
+    class Meta:
+        model = Payment
+        fields = '__all__'
+        widgets = {
+            'date_expiration': DateInput(),
+        }

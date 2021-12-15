@@ -7,11 +7,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
-
+from django.contrib.auth.decorators import login_required
 from clients.forms import ClientForm
 from clients.models import Client
 from profiles.models import Ciudad, Departamento, Profile
 
+@login_required()
 def client_create(request):
     try:
         profile = Profile.objects.get(user = request.user, active = True)
@@ -37,6 +38,7 @@ def client_create(request):
 
         return redirect('client_list')
 
+@login_required()
 def client_list(request):
     try:
         profile = Profile.objects.get(user = request.user, active = True)
@@ -52,8 +54,7 @@ def client_list(request):
 
         return render(request, template_name, context)
 
-
-
+@login_required()
 def client_update(request, *args, **kwargs):
     try:
         profile = Profile.objects.get(user = request.user, active = True)
@@ -72,7 +73,6 @@ def client_update(request, *args, **kwargs):
 
     if request.method == "GET":
         form = ClientForm(instance=client_obj)
-
         context['form'] = form
         context['client_obj'] = client_obj
         print()
@@ -82,7 +82,6 @@ def client_update(request, *args, **kwargs):
 
     if request.method == "POST":
         form = ClientForm(request.POST)
-        print(form.data)
         if form.is_valid():
             client_obj.document = form.data['document']
             client_obj.first_name = form.data['first_name']
@@ -92,6 +91,12 @@ def client_update(request, *args, **kwargs):
             client_obj.email = form.data['email']
             client_obj.phone1 = form.data['phone1']
             client_obj.phone2 = form.data['phone2']
+            try:
+                visibility = request.POST['visibility']
+                client_obj.visibility = True
+            except:
+                client_obj.visibility = False
+            
             client_obj.save()
             
 

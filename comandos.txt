@@ -2,6 +2,8 @@
 
 C:\GitHub\entornos\pagosbc_env\Scripts\activate
 
+python manage.py shell
+
 #shell script
 
 exec(open('test.py').read())

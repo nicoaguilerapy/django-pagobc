@@ -3,7 +3,7 @@ from .views import BlankPage, home, Consult, checkout_list, fee_create, fee_list
 
 urlpatterns = [
     path('', home, name='home'),
-    path('api/', Consult.as_view(), name='consult'),
+    path('api/<int:id>/', Consult.as_view(), name='consult'),
     path('404/', BlankPage.as_view(), name='blank'),
 
     path('payment/create/', payment_create, name='payment_create'),

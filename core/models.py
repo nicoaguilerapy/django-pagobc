@@ -36,7 +36,6 @@ class Payment(models.Model):
     type =  models.CharField('Origen', max_length = 255, default = "Servidor Propio")
     hash_code = models.CharField('Hash Pago', max_length = 64, null=True, blank=True)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
-    owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     
 
     class Meta:
@@ -71,7 +70,6 @@ class Checkout(models.Model):
     date_created = models.DateTimeField(auto_now_add = True)
     commission = models.IntegerField('Comisión', default = 3)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
-    owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         verbose_name = 'Transacción'
@@ -88,7 +86,6 @@ class Fee(models.Model):
     amount_fees = models.IntegerField('Cantidad de Meses', blank = True, null = True)
     date_created = models.DateTimeField(auto_now_add = True)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
-    owner =  models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
 
     def amount_fees_paid(self):
         pay_list = Payment.objects.filter(concept__contains = 'Cuota ID: {}'.format(self.id), status = 'PC')
