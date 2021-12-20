@@ -106,7 +106,7 @@ def _payment_save(received_json_data, payment_obj, profile):
     elif mount <= 0 or mount == None:
         response_data['cod'] = '999'
         error_messages.append('Ingrese un Monto')
-    elif status == '' or status == None or status != 'PP':
+    elif status == '' or status == None:
         response_data['cod'] = '999'
         error_messages.append('Ingrese un Estado')
     elif type_payment < 0 or type_payment == None:
@@ -167,6 +167,14 @@ def _payment_save(received_json_data, payment_obj, profile):
         response_data['message'] = error_messages
         return response_data
 
+def _fee_create(fee_obj, concept, i, company, date_expiration):
+    pay = Payment.objects.create(mount = fee_obj.amount_payable)
+    pay.concept = 'Cuota ID: {} | {} ({}/{})'.format(fee_obj.id, concept, i, fee_obj.amount_fees)
+    pay.client = fee_obj.client
+    pay.company = company
+    pay.status = 'PP'
+    pay.date_expiration = date_expiration
+    pay.save()
 
 @method_decorator(login_required, name='dispatch')
 class BlankPage(TemplateView):
@@ -361,12 +369,11 @@ def fee_create(request):
         error_messages = []
 
         try:
-            client= int(received_json_data['client'])
-            type_document = received_json_data['type_document']
-            document = received_json_data['document']
+            client = received_json_data['client']
             concept = received_json_data['concept']
             amount_payable = int(received_json_data['amount_payable'])
-            mouamount_feesnt = int(received_json_data['amount_fees'])
+            amount_fees = int(received_json_data['amount_fees'])
+            expiration_day = received_json_data['expiration_day']
             datepicker = received_json_data['datepicker']
         except:
             response_data['cod'] = '909'
@@ -382,27 +389,50 @@ def fee_create(request):
 
         today = now()
 
-        if today > date_expiration:
+        if today <= date_expiration:
             response_data['cod'] = '999'
             error_messages.append('Ingrese un Tipo de Fecha Válida')
             
-            fee_obj = Fee.objects.create(client__id = client)
+            client_obj = Client.objects.get(id = client)
+            print(client_obj)
 
-            for c in range(fee_obj.amount_fees):
-                c = c + 1
-                pay = Payment.objects.create(mount = fee_obj.amount_payable)
-                pay.concept = 'Cuota ID: {} | {} ({}/{})'.format(fee_obj.id, document, c, fee_obj.amount_fees)
-                pay.client = fee_obj.client
-                pay.company = profile.company
-                pay.status = 'PP'
-                if c > 1:
-                    pay.date_expiration = (now() + timedelta(days=c*30))
+            fee_obj = Fee.objects.create(client = client_obj, amount_fees = amount_fees, amount_payable = amount_payable, company = profile.company)
+
+            today = now()
+            m = today.month
+            y = today.year
+
+            _fee_create(fee_obj, concept, 1, profile.company, date_expiration)
+
+            for i in range(fee_obj.amount_fees-1):
+                m = m + 1
+                if m <= 12 :
+                    date1 = "{}/{}/{}".format(expiration_day, m, y)
+                    print(date1)
+
+                    new_date = make_aware(datetime.strptime(date1, '%d/%m/%Y'))
+                    new_date = localtime(new_date).replace(hour=23, minute=59, second=59, microsecond=0)
+                    _fee_create(fee_obj, concept, i+2, profile.company, new_date)
+                    if m == 12:
+                        y = y + 1
                 else:
-                    pay.date_expiration = date_expiration
-                pay.save()
-                print(pay)
+                    m = m - 12
+                    date1 = "{}/{}/{}".format(expiration_day, m, y)
+                    print(date1)
+                    new_date = make_aware(datetime.strptime(date1, '%d/%m/%Y'))
+                    new_date = localtime(new_date).replace(hour=23, minute=59, second=59, microsecond=0)
+                    _fee_create(fee_obj, concept, i+2, profile.company, new_date)
+                
+            response_data['cod'] = '000'
+            response_data['message'] = 'Ingresado'
+            fee_obj.save()
+            return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-        return redirect('fee_list')
+
+        response_data['cod'] = '907'
+        error_messages.append('Ingrese un Tipo de Fecha Válida')
+        response_data['message'] = error_messages
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 @login_required()
 def fee_list(request):

@@ -9,9 +9,27 @@ Lista de Pagos
     
 {% block content %}
 
-<!-- DataTales Example -->
-<div class="card shadow mb-4">
+<div class="col-12">
+  <div class="card shadow">
+      <!-- Card Header - Dropdown -->
+      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Cuotas</h6>
+        <div class="dropdown no-arrow">
+  
+        </div>
+      </div>
+      <!-- Card Body -->
     <div class="card-body">
+      <div class="row">
+      <span>   </span>
+      <a href="{% url 'fee_create' %}" class="btn btn-info btn-icon-split">
+        <span id="create_payment" class="icon text-white-50">
+          <i class="fas fa-plus"></i>
+        </span>
+        <span style="color:white" class="text">Crear Cuotas</span>
+    </a>
+      </div>
+      <br>
       <div class="table-responsive">
         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
           <thead>
@@ -20,6 +38,7 @@ Lista de Pagos
               <th>Cliente</th>
               <th>Cuotas Pagadas</th>
               <th>Cuotas Totales</th>
+              <th></th>
             </tr>
           </thead>
           <tfoot>
@@ -27,8 +46,8 @@ Lista de Pagos
               <th>ID</th>
               <th>Cliente</th>
               <th>Cuotas Pagadas</th>
-              <th>Cuotas Totales</th>
-              </tr>
+              <th></th>
+            </tr>
           </tfoot>
           <tbody>
             
@@ -38,12 +57,16 @@ Lista de Pagos
                 <td>{{fee.client}}</td>
                 <td>{{fee.amount_fees_paid}}</td>
                 <td>{{fee.amount_fees}}</td>
+                <td></td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
+
   </div>
+</div>
 
 
 

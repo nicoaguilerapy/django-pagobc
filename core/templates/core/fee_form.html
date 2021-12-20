@@ -20,7 +20,7 @@
         <!-- Card Body -->
         <div class="card-body">
             <form method="POST" id="form-payment" >
-                <input type="hidden" id="client_id" value="{% if fee_obj %}{{fee_obj.client.id}}{% else %}-1{% endif %}">
+                <input type="hidden" id="client_id" value="-1">
                 {% csrf_token %}
                 <div class="form-group">
                     <div class="row">
@@ -95,7 +95,7 @@
                         </div>
                         <div class="col-xl-4 col-md-4 col-mb-12" id="select-status">
                             <label for="">Vencimiento de las Cuotas:</label>
-                            <select class="form-control" name="type_payment" id="type_payment">
+                            <select class="form-control" name="expiration_day" id="expiration_day">
                                 <option value="5" selected>5 cada mes</option>
                                 <option value="10" >10 cada mes</option>
                                 <option value="15" >15 cada mes</option>
@@ -137,12 +137,13 @@
             type_document: $("#type_document").val(),
             document: $("#search_document").val(),
             concept: $("#concept").val(),
-            mount: $("#mount").val(),
-            status: $("#status").val(),
-            type_payment: $("#type_payment").val(),
-            identificador: $("#identificador").val(),
+            amount_payable: $("#amount_payable").val(),
+            amount_fees: $("#amount_fees").val(),
+            expiration_day: $("#expiration_day").val(),
             datepicker: $("#datepicker").val()
             };
+
+        console.log(send_obj)
 
         $.ajax({
             type: 'POST',
@@ -154,24 +155,26 @@
             success:function(data){
                 if(data.cod == "000"){
                     console.log('agregado')
-                    alertSucces('crear Pago', data.message);
+                    alertSucces('Crear Cuotas', data.message);
                     $('#create_payment').html('<i class="fas fa-check"></i>')
-                    window.location.href = "{% url 'payment_list' %}" ;
+                    window.location.href = "{% url 'fee_list' %}" ;
                 }
                 else{
                     alertError('Crear Pago', JSON.parse(JSON.stringify(data.message)));
                     $('#create_payment').html('<i class="fas fa-check"></i>')
                 }
             },
-              error:function(){     
-                alertError('error', 'Error Inesperado del Servidor');
+              error:function(){ 
+                error_aux = ['Error Inesperado del Servidor']    
+                alertError('error', error_aux);
                 $('#create_payment').html('<i class="fas fa-check"></i>')
               }
             });
             
             
         }
-         function getClient() {
+
+    function getClient() {
         var sw = -1;
         for (let i = 0; i < client_list.length; i++) {
             if($('#search_document').val() == client_list[i].document){
