@@ -1,8 +1,5 @@
 from django.db import models
 from itertools import chain
-from django.utils.timezone import now
-from datetime import *
-from datetime import timedelta
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from clients.models import Client
@@ -12,6 +9,7 @@ STATUS_CHOICES = (
     ('PP', 'Pago Pendiente'),
     ('PC', 'Pago Completado'),
     ('PA', 'Pago Anulado'),
+    ('CA', 'Cancelado'),
 )
 
 class Payment(models.Model):
@@ -26,6 +24,7 @@ class Payment(models.Model):
     type =  models.CharField('Origen', max_length = 255, default = "Servidor Propio")
     hash_code = models.CharField('Hash Pago', max_length = 64, null=True, blank=True)
     company = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True)
+    visibility = models.BooleanField('Visible', default = True)
     
 
     class Meta:
@@ -36,20 +35,21 @@ class Payment(models.Model):
     def __str__(self):
         return "{}: {}, Monto: {}".format(self.id, self.client, self.mount)
 
-    def to_dict(instance):
-        opts = instance._meta
-        data = {}
-        for f in chain(opts.concrete_fields, opts.private_fields):
-            data[f.name] = f.value_from_object(instance)
-        for f in opts.many_to_many:
-            data[f.name] = [i.id for i in f.value_from_object(instance)]
-        return data
-
     def getDateString(self):
         return self.date_expiration.strftime("%d-%m-%Y")
     
     def get_status_current(self):
-        return self.status.get_status_display()
+        for i in STATUS_CHOICES:
+            if self.status == i[0]:
+                return i[1]
+        
+    
+    def get_type(self):
+        return self.type.replace("Pagopar - ","")
+
+    def isFee(self):
+        if 'Cuota ID:' in self.concept:
+            return True
     
 class Checkout(models.Model):
     id = models.AutoField(primary_key = True)
@@ -82,11 +82,12 @@ class Fee(models.Model):
         pay_list = Payment.objects.filter(concept__contains = 'Cuota ID: {}'.format(self.id), status = 'PC')
         print(pay_list)
         return pay_list.count()
+    
+    
 
 @receiver(post_save, sender=Payment)
 def ensure_payment_exists(sender, instance, **kwargs):
     if kwargs.get('created', False):
-        instance.date_expiration = now() + timedelta(hours = 72)
-        instance.ref_code = "000{}".format(instance.id)
+        instance.ref_code = "001{}".format(instance.id)
         instance.save()
         

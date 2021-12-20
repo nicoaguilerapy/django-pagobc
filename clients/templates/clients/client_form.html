@@ -24,19 +24,19 @@ Cliente
             </div>
             <div class="form-group">
                 <label for="">Documento Nº:</label>
-                {{form.document}}
+                <input type="text" name="document" placeholder="Ingrese el Documento" class="form-control" id="client_document">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="input_business_name">
                 <label for="">Razón Social:</label>
-                {{form.business_name}}
+                <input type="text" name="business_name" placeholder="Ingrese la Razón Social" class="form-control" id="client_business_name">
             </div>
             <div class="form-group">
                 <label for="">Nombre:</label>
-                {{form.first_name}}
+                <input type="text" name="first_name" placeholder="Ingrese el Nombre" class="form-control" id="client_first_name">
             </div>
             <div class="form-group">
                 <label for="">Apellido:</label>
-                {{form.last_name}}
+                <input type="text" name="last_name" placeholder="Ingrese el Apellido" class="form-control" id="client_last_name">
             </div>
             <div class="form-group mb-0">
                 <label for="region" class="form-label mt-15">Departamento</label>
@@ -53,27 +53,35 @@ Cliente
 
             <div class="form-group">
                 <label for="">Correo Electronico:</label>
-                {{form.email}}
+                <input type="email" name="email" placeholder="Ingrese el Correo Electronico" class="form-control" id="client_email">
             </div>
             <div class="form-group">
                 <label for="">Número de Contacto:</label>
-                {{form.phone1}}
+                <input type="text" name="phone1" placeholder="Ingrese la Número de Contacto" class="form-control" id="client_phone1">
             </div>
             <div class="form-group">
-                <label for="">Número de Contacto:</label>
-                {{form.phone2}}
+                <label for="">Número de Contacto Auxiliar (Opcional):</label>
+                <input type="text" name="phone2" placeholder="Ingrese la Número de Contacto" class="form-control" id="client_phone2">
             </div>
+            {% if not client_obj %}
             <div class="form-group">
-                <input type="checkbox" name="visibility" id="visibility" 
+                <input type="checkbox" name="visibility" id="client_visibility" 
                 {% if client_obj.visibility %} checked {% endif %} >
                 <label class="form-check-label" for="visibility">Activado</label>
             </div>
-            {% if client_obj %}
-            <button type="submit" class="btn btn-primary">Modificar Cliente</button>
-            {% else %}
-            <button type="submit" class="btn btn-primary">Crear Cliente</button>
             {% endif %}  
-          </form>
+
+            
+        <div class="dropdown-divider"></div>
+        
+        {% if client_obj %}
+        <button type="submit" class="btn btn-success"><span class="fa fa-save"></span>Guardar</button>
+        {% else %}
+        <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Nuevo</button>
+        {% endif %}
+        <button type="button" data-dismiss="modal" class="btn btn-danger">Cerrar</button>
+
+        </form>
     </div>
 </div>
 
@@ -84,17 +92,31 @@ Cliente
 <script type="text/javascript">
     var global_departamentos = null;
     var global_ciudades = null;
+
     
     $("#id_region").on('change', function(){
         setCiudades();
+    });
+
+    $("#type_document").on('change', function(){
+        if($('#type_document').val()=='RU'){
+            $("#input_business_name").show();
+        }else{
+            $("#input_business_name").hide();
+        }
     });
 
 $(document).ready(function(){
     var local_values = getValuesCheck();
     global_departamentos = JSON.parse(JSON.stringify(local_values.departamentos));
     global_ciudades = JSON.parse(JSON.stringify(local_values.ciudades));
-    console.log(global_departamentos)
+
+    $("#input_business_name").hide()
+
     setDepartamentos()
+
+    
+
 });
 
 function getValuesCheck() {

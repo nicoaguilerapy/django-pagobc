@@ -1,118 +1,170 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block title1 %}
     Nuevo Pago
 {% endblock title1 %}
 
 {% block extra_css %}
+<style>
+    sub_icon {
+    float: right;
+    margin-right: 10px;
+    margin-top: 10px;
+    padding-right: 65px;
+    padding-top: 10px;
+}
+</style>
   
 {% endblock extra_css %}
 
 {% block content %}
-<div class="col-xl-6 col-md-8 mb-12">
+<div class="col-xl-6 col-md-12 col-mb-12">
 <div class="card shadow">
     <!-- Card Header - Dropdown -->
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-      <h6 class="m-0 font-weight-bold text-primary">Dropdown Card Example</h6>
+      <h6 class="m-0 font-weight-bold text-primary">{% if not payment_obj %}Nuevo Pago{% else %}Modificar Pago{% endif %}</h6>
       <div class="dropdown no-arrow">
-        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-        </a>
-        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-          <div class="dropdown-header">Dropdown Header:</div>
-          <a class="dropdown-item" href="#">Action</a>
-          <a class="dropdown-item" href="#">Another action</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">Something else here</a>
-        </div>
+
       </div>
     </div>
     <!-- Card Body -->
     <div class="card-body">
         <form method="POST" id="form-payment" >
+            <input type="hidden" id="client_id" value="{% if payment_obj %}{{payment_obj.client.id}}{% else %}-1{% endif %}">
             {% csrf_token %}
-                <div class="form-group">
-                    <div class="row">
-
-                    <div class="col-6">
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
                         <label for="">Cliente Documento:</label>
                         <div class="input-group">
-                        <input type="text" name="search_document" {% if not payment_obj %} placeholder="Ingrese el Documento" {% endif %} class="form-control" value="{{payment_obj.document}}" required id="search_document">
-                        <button class="btn btn-primary" type="button">
-                            <i class="fas fa-search fa-sm"></i>
-                        </button>
+                            <input type="text" name="search_document" {% if not payment_obj %} placeholder="Ingrese el Documento" {% else %} value="{{payment_obj.client.document}}" readonly {% endif %} class="form-control" id="search_document">     
+                            
+                            {% if not payment_obj %}
+                            <button href="#" onclick="getClient();return false;" class="btn btn-primary" type="button">
+                                <i class="fas fa-search fa-sm"></i>
+                            </button>
+                            <a class="btn btn-success" href="{% url 'client_create' %}">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            {% endif %}       
+
+                        </div>
                     </div>
-                    </div>
-                    <div class="col-6">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
 
                     </div>
                 </div>
-                </div>
-
-                
-
-            
+            </div>
             <div class="form-group">
+                <div class="row">
+                    <div class="col-3">
+                        <input type="text" name="type_document" class="form-control" {% if payment_obj %} value="{{payment_obj.client.type_document}}" {% else %} value="" {% endif %} readonly id="type_document">
+                    </div>
+                    <div class="col-9">
+                        <input type="text" name="client_name" class="form-control" {% if payment_obj %} value="{{payment_obj.client.getName}}" {% else %} value="" {% endif %} readonly id="client_name">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row">
+                <div class="col-xl-6 col-md-12 col-mb-12">
                 <label for="">Concepto:</label>
-                <input type="text" name="concept" {% if not payment_obj %} placeholder="Ingrese el Concepto" {% endif %} class="form-control" value="{{payment_obj.concept}}" required id="concept">
+                <input type="text" name="concept" {% if not payment_obj %} placeholder="Ingrese el Concepto" {% endif %} class="form-control" value="{{payment_obj.concept}}" {% if not identificador %} required {% else %} readonly {% endif %} id="concept">
+                </div>
+                <div class="col-xl-6 col-md-12 col-mb-12">
+                <label for="">Monto:</label>
+                <input type="number" name="mount" class="form-control" value="{% if payment_obj %}{{payment_obj.mount}}{% else %}0{% endif %}"  {% if not identificador %} required {% else %} readonly {% endif %} id="mount">
+                </div>
+                </div>
             </div>
 
             <div class="form-group">
-                <label for="">Monto:</label>
-                <input type="number" name="mount" class="form-control" value="{% if payment_obj %}{{payment_obj.mount}}{% else %}0{% endif %}" required id="mount">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12" id="select-status">
+                        <label for="status" class="form-label mt-15">Estado</label>
+                        <select class="form-control" name="status" id="status">
+                            {% if not payment_obj %}
+                            <option value="PP" selected>Pago Pendiente</option>
+                            {% else %}
+                                {% if identificador %}
+                                    <option value="{{payment_obj.status}}">{{payment_obj.get_status_current}}</option>
+                                {% else %}
+                                    {% for st in status_list %}
+                                        <option value="{{st.0}}" {% if st.0 == payment_obj.status %} required {% endif %}>{{st.1}}</option>
+                                    {% endfor %}
+                                    {% endif %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="col-xl-6 col-md-12 col-mb-12" id="select-type-payment">
+                        <label for="type_payment" class="form-label mt-15">Tipo de Pago:</label>
+                            <select class="form-control" name="type_payment" id="type_payment">
+                                {% if not payment_obj %}
+                                <option value="1" selected>Servidor Propio</option>
+                                <option value="2">PagoPar</option>
+                                {% else %}  
+                                    {% if payment_obj.type == 'Servidor Propio' %}
+                                    <option value="1" selected>Servidor Propio</option>
+                                    <option value="2">PagoPar</option>
+                                    {% else %}
+                                    <option value="2" selected>PagoPar</option>     
+                                    {% endif %}   
+                                {% endif %}  
+                            </select>
+                    </div>
+                </div>
             </div>
     
-            <div class="form-group" id="select-status">
-                <label for="status" class="form-label mt-15">Estado</label>
-                <select class="form-control" name="status" id="status">
-                    {% if not payment_obj %}
-                    <option value="PP" selected>Pago Pendiente</option>
-                    {% else %}
-                        {% for st in status %}
-                            <option value="{{st.0}}" {% if st.0 == payment_obj.status %} required {% endif %}>{{st.1}}</option>
-                        {% endfor %} 
-                    {% endif %}
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12" id="select-status">
+                        <label for="">Fecha de Vencimiento:</label>
+                        <input type="text" {% if identificador %} readonly {% endif %} name="datepicker" class="form-control" value="{{date_expiration}}" required id="datepicker">
+                    </div>
                     
-                </select>
+                    <div class="col-xl-6 col-md-12 col-mb-12" id="select-identificador">
+                        <label for="identificador" class="form-label mt-15">Método de Pago:</label>
+                        <select class="form-control" name="identificador" id="identificador" >
+                        {% if not identificador %}
+                            <option value="-1" selected>-----------</option>
+                            {% for formapago in formapago_list %}
+                            <option value="{{formapago.identificador}}" >{{formapago.forma_pago}}</option>
+                            {% endfor %}    
+                        
+                        {% else %}
+                            <option value="{{identificador.identificador}}" selected >{{identificador.forma_pago}}</option>
+                        {% endif %} 
+                    </select>
+                        
+                    </div>
+                </div>
             </div>
-    
-            <div class="form-group" id="select-type-payment">
-                <label for="type_payment" class="form-label mt-15">Tipo de Pago:</label>
-                <select class="form-control" name="type_payment" id="type_payment">
-                    <option value="1" selected>Servidor Propio</option>
-                    <option value="2">PagoPar</option>
-                </select>
-            </div>
+
     
             <div class="form-group" id="select-identificador">
-                <label for="identificador" class="form-label mt-15">Método de Pago:</label>
-                <select class="form-control" name="identificador" id="identificador">
-                    <option value="-1" selected>-----------</option>
-                    {% for formapago in formapago_list %}
-                    <option value="{{formapago.identificador}}">{{formapago.forma_pago}}</option>
-                    {% endfor %}    
-                </select>
+                
             </div>
     
             <div class="form-group">
-                <label for="">Fecha de Vencimiento:</label>
-                <input type="text" name="datepicker" class="form-control" value="{{payment_obj.mount}}" required id="datepicker">
+                
             </div>
     
-            <ahref="#" onclick="sendForm();return false;" class="btn btn-success btn-icon-split">
-                <span class="icon text-white-50">
-                  <i class="fas fa-check"></i>
+            <a href="#" onclick="sendForm();return false;" class="btn btn-success btn-icon-split">
+                <span id="create_payment" class="icon text-white-50">
+                    <i class="fas fa-check"></i>
                 </span>
+                {% if not payment_obj %}
                 <span style="color:white" class="text">Crear Pago</span>
-              </a>
+                {% else %}
+                <span style="color:white" class="text">Modificar Pago</span>
+                {% endif %}
+            </a>
           </form> 
     </div>
 </div>
-  <!-- Card Body -->
-
-   
-
-
+</div>
 
 {% endblock content %}
 
@@ -121,7 +173,9 @@
 
 <script type="text/javascript">
 
-    $("#select-identificador").hide();
+{% if not identificador %}
+$("#select-identificador").hide();
+{% endif %}
 
     $("#type_payment").on('change', function(){
         if($('#type_payment').val()=='2'){
@@ -136,14 +190,15 @@
     if (event.which === 13) {
         sendForm();
     }
-});
+    });
 
-</script>
-<script type="text/javascript">
+    function sendForm(form) {
+        $('#create_payment').html('<i class="fas fa-spinner fa-spin"></i>')
 
-    function sendForm() {
         var send_obj = {
-            client: $("#client").val(),
+            client: $("#client_id").val(),
+            type_document: $("#type_document").val(),
+            document: $("#search_document").val(),
             concept: $("#concept").val(),
             mount: $("#mount").val(),
             status: $("#status").val(),
@@ -152,11 +207,13 @@
             datepicker: $("#datepicker").val()
             };
 
-            console.log(send_obj)
-
         $.ajax({
             type: 'POST',
+            {% if not payment_obj %}
             url: '{% url 'payment_create' %}',
+            {% else %}
+            url: '{% url 'payment_update' payment_obj.id %}',
+            {% endif %}
             contentType: "application/json; charset=utf-8",
             dataType: 'json',
             data: JSON.stringify(send_obj),
@@ -164,26 +221,55 @@
             success:function(data){
                 if(data.cod == "000"){
                     console.log('agregado')
-                    alertSucces('crear Pago', data.message);
+                    alertSucces(data.message);
+                    $('#create_payment').html('<i class="fas fa-check"></i>')
+                    window.location.href = "{% url 'payment_list' %}" ;
                 }
                 else{
-                    console.log(data.message)
                     alertError('Crear Pago', JSON.parse(JSON.stringify(data.message)));
+                    $('#create_payment').html('<i class="fas fa-check"></i>')
                 }
             },
               error:function(){     
                 alertError('error', 'Error Inesperado del Servidor');
+                $('#create_payment').html('<i class="fas fa-check"></i>')
               }
             });
+            
+            
         }
-    </script>
 
-<script>
-    $('#datepicker').datepicker({
-      dateFormat: "dd/mm/yy"
-  });
+    function getClient() {
+        var sw = -1;
+        for (let i = 0; i < client_list.length; i++) {
+            if($('#search_document').val() == client_list[i].document){
+                sw = i
+            }
+        }
+
+        if(sw != -1){
+            $('#type_document').val(client_list[sw].type_document)
+            $('#client_name').val(client_list[sw].name)
+            $('#client_id').val(client_list[sw].id)
+        }else{
+            $('#type_document').val("--")
+            $('#client_name').val("Cliente no Encontrado")
+            $('#client_id').val("-1")
+        }
+    }
 </script>
 
 
+<script type="text/javascript">
+    {% if client_list %}
+    var client_list = {{client_list|safe}};
+    console.log(client_list)
+    {% endif %}
+
+    $('#datepicker').datepicker({
+      dateFormat: "dd/mm/yy"
+    });
+
+</script>
 
 {% endblock extra_script %}

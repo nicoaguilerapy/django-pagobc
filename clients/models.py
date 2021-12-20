@@ -2,6 +2,8 @@ from django.db import models
 from itertools import chain
 from datetime import datetime
 from datetime import timedelta
+
+from django.forms.models import model_to_dict
 from profiles.models import Ciudad, CustomUser, Departamento, Empresa
 
 STATUS_CHOICES = (
@@ -40,3 +42,14 @@ class Client(models.Model):
 
     def get_type_document(self):
         return self.type_document.get_status_display()
+
+    def toJSON(self):
+        client = model_to_dict(self)
+        if self.type_document == 'RU':
+            client['name'] = self.business_name
+        else:
+            client['name'] = self.getName()
+        
+        return client
+
+

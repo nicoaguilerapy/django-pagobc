@@ -19,19 +19,20 @@ import json
 from django.http import JsonResponse
 import urllib.request
 
-token_privado = 'b3a23b044e9de4f3740d2a4d552beea4'
-token_publico = 'd25f1939a677b4dc9dc95426bf836f30'
-time_compared = timedelta(hours=24)
-
 @csrf_exempt
-def create_payment(request):
+def create_payment(request, *args, **kwargs):
     if request.method == 'POST':
         received_json_data=json.loads(request.body)
         print(received_json_data)
 
+        company_obj = Empresa.objects.get(id = received_json_data['id_company'])
         client_obj = Client.objects.get(id = received_json_data['id_client'])
         payment_obj = Payment.objects.get(id = received_json_data['id_payment'])
         formapago_obj = FormaPago.objects.get(identificador = received_json_data['id_identificador'])
+
+        #capturar tokens
+        token_privado = company_obj.token_privado
+        token_publico = company_obj.token_publico
 
         #generar token
         text = "{}{}{}".format(token_privado, payment_obj.ref_code, payment_obj.mount)
@@ -80,8 +81,6 @@ def create_payment(request):
         items.append(compra_items)
         response_data['compras_items'] = items
 
-        date_time = now() + time_compared
-
         response_data['fecha_maxima_pago'] = payment_obj.date_expiration.strftime("%Y-%m-%d %H:%M:%S")
         response_data['id_pedido_comercio'] = payment_obj.ref_code
         response_data['descripcion_resumen'] = ''
@@ -92,7 +91,7 @@ def create_payment(request):
             print(r.json()['resultado'])
             print(response_data)
 
-            return JsonResponse({"cod": "500", "message": "Error en el Request"}, status=200, safe=False)
+            return JsonResponse({"cod": "999", "message": r.json()['resultado']}, status=200, safe=False)
         else:
             #cambiar a pedido completado
             print()

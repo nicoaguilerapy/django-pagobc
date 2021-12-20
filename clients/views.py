@@ -79,7 +79,6 @@ def client_list(request):
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-
 @login_required()
 def client_update(request, *args, **kwargs):
     try:

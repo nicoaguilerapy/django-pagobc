@@ -5,7 +5,7 @@ from django.core.mail import EmailMessage, send_mail
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 import urllib.request
 import requests
 from django.utils.timezone import make_aware
@@ -18,6 +18,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
 from core.forms import FeeForm, PaymentForm
+from core.views import payment_hide
 from pagopar.models import FormaPago
 from core.models import Fee, Payment, Checkout, STATUS_CHOICES
 from clients.models import Client
@@ -57,9 +58,9 @@ def _sendEmailPagoPar(client_email, link):
 @csrf_exempt
 def consult_pagoexpress(request, *args, **kwargs):
     response_data = {}
-    today = timezone.now()
+    today = now()
 
-    if request.method == "GET":
+    if request.method == "POST":
         received_json_data=json.loads(request.body)
         print(received_json_data)
 
@@ -90,7 +91,7 @@ def consult_pagoexpress(request, *args, **kwargs):
                 response_data['mensaje_respuesta'] = 'Cliente no registrado'
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
 
-            payments_list = Payment.objects.filter(status = 'PP', client = client_obj)
+            payments_list = Payment.objects.filter(status = 'PP', client = client_obj, visibility = True)
 
             if not payments_list:
                     response_data['codigo_respuesta'] = '02'
@@ -119,6 +120,11 @@ def consult_pagoexpress(request, *args, **kwargs):
 
         elif tipo == 'pago':
             payment_obj = Payment.objects.get(ref_code = deuda_id)
+            if importe != payment_obj.mount:
+                response_data['codigo_respuesta'] = '04'
+                response_data['mensaje_respuesta'] = 'El Importe debe ser igual a la Deuda'
+                return HttpResponse(json.dumps(response_data), content_type="application/json")
+
 
             checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
 
@@ -143,12 +149,12 @@ def consult_pagoexpress(request, *args, **kwargs):
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
 
         else:
-            response_data['codRetorno'] = '999'
+            response_data['codRetorno'] = '99'
             response_data['desRetorno'] = 'Error en el proceso'
             return HttpResponse(json.dumps(response_data), content_type="application/json")
 
     else:
-        response_data['codRetorno'] = '999'
+        response_data['codRetorno'] = '99'
         response_data['desRetorno'] = 'Error en el proceso'
         return HttpResponse(json.dumps(response_data), content_type="application/json")
 

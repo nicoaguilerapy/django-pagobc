@@ -8,70 +8,199 @@
 {% endblock title2 %}
     
 {% block content %}
-
-<div class="container">
-    <div class="row">
-        <form method="POST" >
-            {% csrf_token %}
-            
-            {% if client_obj %}
-            <div class="form-group">
-                <label for="">Cliente:</label>
-                <select name="client" class="selectpicker form-control" id="client" readonly>
-                <option value="{{client_obj.id}}" selected>{{client_obj}}</option>
-                </select>
-
+<div class="col-xl-6 col-md-12 col-mb-12">
+    <div class="card shadow">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">{% if not fee_obj %}Nueva Cuota{% else %}Modificar Cuota{% endif %}</h6>
+          <div class="dropdown no-arrow">
+    
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <form method="POST" id="form-payment" >
+                <input type="hidden" id="client_id" value="{% if fee_obj %}{{fee_obj.client.id}}{% else %}-1{% endif %}">
+                {% csrf_token %}
                 <div class="form-group">
+                    <div class="row">
+                        <div class="col-xl-6 col-md-12 col-mb-12">
+                            <label for="">Cliente Documento:</label>
+                            <div class="input-group">
+                                <input type="text" name="search_document" {% if not fee_obj %} placeholder="Ingrese el Documento" {% else %} value="{{fee_obj.client.document}}" readonly {% endif %} class="form-control" id="search_document">     
+                                
+                                {% if not fee_obj %}
+                                <button href="#" onclick="getClient();return false;" class="btn btn-primary" type="button">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                                <a class="btn btn-success" href="{% url 'client_create' %}">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                                {% endif %}       
+    
+                            </div>
+                        </div>
+                        <div class="col-xl-6 col-md-12 col-mb-12">
+    
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-3">
+                            <input type="text" name="type_document" class="form-control" {% if fee_obj %} value="{{fee_obj.client.type_document}}" {% else %} value="" {% endif %} readonly id="type_document">
+                        </div>
+                        <div class="col-9">
+                            <input type="text" name="client_name" class="form-control" {% if fee_obj %} value="{{fee_obj.client.getName}}" {% else %} value="" {% endif %} readonly id="client_name">
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="form-group">
+                    <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
                     <label for="">Concepto:</label>
-                    <input type="text" name="concept" class="form-control" value="{{payment_obj.concept}}" id="concept" maxlength="20" readonly>
+                    <input type="text" name="concept" {% if not fee_obj %} placeholder="Ingrese el Concepto" {% endif %} class="form-control" value="{{fee_obj.concept}}" required id="concept">
+                    </div>
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+    
+                    </div>
                 </div>
+            </div>
+    
                 <div class="form-group">
-                    <label for="">Monto:</label>
-                    <input type="number" name="mount" class="form-control" value="{{payment_obj.mount}}" id="mount" readonly>
+                    <div class="row">
+                        <div class="col-xl-6 col-md-12 col-mb-12">
+                            <label for="">Monto:</label>
+                            <input type="number" name="amount_payable" class="form-control" value="{% if fee_obj %}{{fee_obj.amount_payable}}{% else %}0{% endif %}" required id="amount_payable">
+                        </div>
+                        <div class="col-xl-6 col-md-12 col-mb-12">
+                            <label for="">Cantidad e Cuotas:</label>
+                            <input type="number" name="amount_fees" class="form-control" value="{% if fee_obj %}{{fee_obj.amount_fees}}{% else %}0{% endif %}" required id="amount_fees">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="">Fecha de Vencimiento:</label>
-                    <input type="text" name="date_expiration" value="{{payment_obj.date_expiration}}" class="form-control" placeholder="" id="date_expiration" readonly aria-label="Default select example" maxlength="30">
-                </div>
-                <div class="form-group">
-                    <label for="">Estado:</label>
-                {% if payment_obj.status == 'CA' %}
-                <input type="text" name="concept" class="form-control" value="{{payment_obj.get_status_display}}" id="concept" maxlength="20" readonly>
-                </div>
-                {% else %}
-                {{form.status}}
-                </div>
-                <button type="submit" class="btn btn-primary">Modificar Pago</button>
-                {% endif %}
-
-            </div>
-            {% else %} 
-            <div class="form-group">
-                <label for="">Cliente:</label>
-                <select name="client" class="selectpicker form-control" id="client" required>
-                <option value="" selected>---------</option>
-                {% for client in client_list %}
-                <option value="{{client.id}}">{{client}}</option>
-                {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="">Concepto:</label>
-                <input type="text" name="concept" class="form-control" placeholder="Concepto" id="concept" maxlength="50" required>
-            </div>
-            <div class="form-group">
-                <label for="">Monto Por Cuota:</label>
-                {{form.amount_payable}}
-            </div>
-            <div class="form-group">
-                <label for="">Cantidad de Cuotas:</label>
-                {{form.amount_fees}}
-            </div>
-            <button type="submit" class="btn btn-primary">Crear Cuotas</button>
-            {% endif %}
-          </form>
         
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-xl-4 col-md-4 col-mb-12" id="select-status">
+                            <label for="">Vencimiento Cuota 1:</label>
+                            <input type="text" name="datepicker" class="form-control" value="{{date_expiration}}" required id="datepicker">
+                        </div>
+                        <div class="col-xl-4 col-md-4 col-mb-12" id="select-type-payment">
+                            <label for="type_payment" class="form-label mt-15">Tipo de Pago:</label>
+                                <select class="form-control" name="type_payment" id="type_payment">
+                                    <option value="1" selected>Servidor Propio</option> 
+                                </select>
+                        </div>
+                        <div class="col-xl-4 col-md-4 col-mb-12" id="select-status">
+                            <label for="">Vencimiento de las Cuotas:</label>
+                            <select class="form-control" name="type_payment" id="type_payment">
+                                <option value="5" selected>5 cada mes</option>
+                                <option value="10" >10 cada mes</option>
+                                <option value="15" >15 cada mes</option>
+                                <option value="20" >20 cada mes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+    
+        
+                <div class="form-group" id="select-identificador">
+                    
+                </div>
+        
+                <div class="form-group">
+                    
+                </div>
+        
+                <a href="#" onclick="sendForm();return false;" class="btn btn-success btn-icon-split">
+                    <span id="create_payment" class="icon text-white-50">
+                        <i class="fas fa-check"></i>
+                    </span>
+                    <span style="color:white" class="text">Crear Cuotas</span>
+                </a>
+              </form> 
+        </div>
     </div>
-</div>
+    </div>
 
 {% endblock content %}
+
+{% block extra_script %}
+<script type="text/javascript">
+        function sendForm(form) {
+        $('#create_payment').html('<i class="fas fa-spinner fa-spin"></i>')
+
+        var send_obj = {
+            client: $("#client_id").val(),
+            type_document: $("#type_document").val(),
+            document: $("#search_document").val(),
+            concept: $("#concept").val(),
+            mount: $("#mount").val(),
+            status: $("#status").val(),
+            type_payment: $("#type_payment").val(),
+            identificador: $("#identificador").val(),
+            datepicker: $("#datepicker").val()
+            };
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'fee_create' %}',
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            data: JSON.stringify(send_obj),
+            headers: {'X-CSRFToken':getCookie('csrftoken')},
+            success:function(data){
+                if(data.cod == "000"){
+                    console.log('agregado')
+                    alertSucces('crear Pago', data.message);
+                    $('#create_payment').html('<i class="fas fa-check"></i>')
+                    window.location.href = "{% url 'payment_list' %}" ;
+                }
+                else{
+                    alertError('Crear Pago', JSON.parse(JSON.stringify(data.message)));
+                    $('#create_payment').html('<i class="fas fa-check"></i>')
+                }
+            },
+              error:function(){     
+                alertError('error', 'Error Inesperado del Servidor');
+                $('#create_payment').html('<i class="fas fa-check"></i>')
+              }
+            });
+            
+            
+        }
+         function getClient() {
+        var sw = -1;
+        for (let i = 0; i < client_list.length; i++) {
+            if($('#search_document').val() == client_list[i].document){
+                sw = i
+            }
+        }
+
+        if(sw != -1){
+            $('#type_document').val(client_list[sw].type_document)
+            $('#client_name').val(client_list[sw].name)
+            $('#client_id').val(client_list[sw].id)
+        }else{
+            $('#type_document').val("--")
+            $('#client_name').val("Cliente no Encontrado")
+            $('#client_id').val("-1")
+        }
+    }
+</script>
+
+<script type="text/javascript">
+    {% if client_list %}
+    var client_list = {{client_list|safe}};
+    console.log(client_list)
+    {% endif %}
+
+    $('#datepicker').datepicker({
+      dateFormat: "dd/mm/yy"
+    });
+
+</script>
+{% endblock extra_script %}
+    
