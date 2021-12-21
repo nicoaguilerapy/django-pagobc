@@ -140,34 +140,24 @@ function setPaymentHide(id) {
   }
 </script>
 <script>
+
   function openDialogRemove(id) {
 
     Swal.fire({
       title: 'Ocultar Pago ID: '+id,
-  text: "No Puedes Revertir esto",
-  icon: 'warning',
-  showCancelButton: true,
-  confirmButtonColor: '#3085d6',
-  cancelButtonColor: '#d33',
-  confirmButtonText: 'Si, Ocultar'
-}).then((result) => {
-  if (result.isConfirmed) {
-    setPaymentHide(id)
-  }
-})
+      text: "No Puedes Revertir esto",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, Ocultar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setPaymentHide(id)
+      }
+    })
 
 }
-
-</script>
-<script type="text/javascript">
-  {% if fee_obj %}
-  var client_list = {{client_list|safe}};
-  console.log(client_list)
-  {% endif %}
-
-  $('#datepicker').datepicker({
-    dateFormat: "dd/mm/yy"
-  });
 
 </script>
 {% endblock extra_script %}

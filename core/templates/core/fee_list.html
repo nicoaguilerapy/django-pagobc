@@ -39,6 +39,7 @@ Lista de Pagos
               <th>Cuotas Pagadas</th>
               <th>Cuotas Totales</th>
               <th></th>
+              <th></th>
             </tr>
           </thead>
           <tfoot>
@@ -46,6 +47,8 @@ Lista de Pagos
               <th>ID</th>
               <th>Cliente</th>
               <th>Cuotas Pagadas</th>
+              <th>Cuotas Totales</th>
+              <th></th>
               <th></th>
             </tr>
           </tfoot>
@@ -57,7 +60,22 @@ Lista de Pagos
                 <td>{{fee.client}}</td>
                 <td>{{fee.amount_fees_paid}}</td>
                 <td>{{fee.amount_fees}}</td>
-                <td></td>
+                <td>
+                  <a href="#" onclick="openDialogRemove({{fee.id}}, 'hide_paid');return false;" class="btn btn-success btn-icon-split btn-sm">
+                    <span class="icon text-white-50">
+                      <i class="fas fa-check"></i>
+                    </span>
+                    <span class="text">Ocultar Pagados</span>
+                  </a>
+                </td>
+                <td>
+                  <a href="#" onclick="openDialogRemove({{fee.id}}, 'hide_all');return false;" class="btn btn-danger btn-icon-split btn-sm">
+                    <span class="icon text-white-50">
+                      <i class="fas fa-trash"></i>
+                    </span>
+                    <span class="text">Ocultar Todos</span>
+                  </a>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -75,8 +93,62 @@ Lista de Pagos
 
 {% block extra_script %}
 <script type="text/javascript">
-    $(document).ready( function () {
-    $('#dataTable').DataTable();
-} );
+
+  function setFeeHide(id, type) {
+  
+      var send_obj = {
+        fee_id: id,
+        type: type
+      };
+  
+      $.ajax({
+          type: 'POST',
+          url: '/fee/change/',
+          contentType: "application/json; charset=utf-8",
+          dataType: 'json',
+          data: JSON.stringify(send_obj),
+          headers: {'X-CSRFToken':getCookie('csrftoken')},
+          success:function(data){
+              if(data.cod == "000"){
+                  console.log('agregado')
+                  alertSucces('Modificar Pagos');
+              }
+              else{
+                  alertError('Modificar Pago', JSON.parse(JSON.stringify(data.message)));
+              }
+          },
+            error:function(){     
+              alertError('error', 'Error Inesperado del Servidor');
+            }
+          });
+              
+    
+    }
+  </script>
+  <script>
+
+    function openDialogRemove(id, type) {
+      if(type == 'hide_paid'){
+        text = 'Ocultar Pagados de Cuota ID: '+id
+      }else{
+        text = 'Ocultar Todos de Cuota ID: '+id
+      }  
+      Swal.fire({
+        
+        title: text,
+        text: "No Puedes Revertir esto",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, Ocultar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setFeeHide(id, type)
+        }
+      })
+  
+  }
+  
   </script>
 {% endblock extra_script %}

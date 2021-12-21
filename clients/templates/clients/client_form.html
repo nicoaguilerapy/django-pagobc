@@ -9,80 +9,109 @@ Cliente
     
 {% block content %}
 
-<div class="container">
-    <div class="row">
+<div class="col-xl-6 col-md-12 col-mb-12">
+    <div class="card shadow">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">{% if not client_obj %}Nuevo Cliente{% else %}Modificar Cliente{% endif %}</h6>
+          <div class="dropdown no-arrow">
+    
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
         <form method="POST" >
             {% csrf_token %}
-            <div class="form-group mb-0">
-                <label for="type_document" class="form-label mt-15">Tipo de Documento</label>
-                <select class="form-control" name="type_document" id="type_document">
-                    <option value="CI" selected>CI</option>
-                    <option value="RU">RUC</option>
-                    <option value="PA">PASAPORTE</option>
-                    <option value="OT">OTROS</option>
-                </select>
-            </div>
             <div class="form-group">
-                <label for="">Documento Nº:</label>
-                <input type="text" name="document" placeholder="Ingrese el Documento" class="form-control" id="client_document">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="type_document" class="form-label mt-15">Tipo de Documento</label>
+                        <select class="form-control" name="type_document" id="type_document">
+                            <option value="CI" selected>CI</option>
+                            <option value="RU">RUC</option>
+                            <option value="PA">PASAPORTE</option>
+                            <option value="OT">OTROS</option>
+                        </select>
+                    </div>
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="">Documento Nº:</label>
+                        <input type="text" name="document" placeholder="Ingrese el Documento" class="form-control" id="document">
+                    </div>
+                </div>
             </div>
+
             <div class="form-group" id="input_business_name">
                 <label for="">Razón Social:</label>
-                <input type="text" name="business_name" placeholder="Ingrese la Razón Social" class="form-control" id="client_business_name">
-            </div>
-            <div class="form-group">
-                <label for="">Nombre:</label>
-                <input type="text" name="first_name" placeholder="Ingrese el Nombre" class="form-control" id="client_first_name">
-            </div>
-            <div class="form-group">
-                <label for="">Apellido:</label>
-                <input type="text" name="last_name" placeholder="Ingrese el Apellido" class="form-control" id="client_last_name">
-            </div>
-            <div class="form-group mb-0">
-                <label for="region" class="form-label mt-15">Departamento</label>
-                <select class="form-control" name="region" id="id_region">
-                    <option value="" selected>-----------</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="city" class="form-label mt-15">Ciudad</label>
-                <select class="form-control" name="city" id="id_city">
-                    <option value="" selected>-----------</option>
-                </select>
+                <input type="text" name="business_name" placeholder="Ingrese la Razón Social" class="form-control" id="business_name">
             </div>
 
             <div class="form-group">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="">Nombre:</label>
+                        <input type="text" name="first_name" placeholder="Ingrese el Nombre" class="form-control" id="first_name">
+                    </div>
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="">Apellido:</label>
+                        <input type="text" name="last_name" placeholder="Ingrese el Apellido" class="form-control" id="last_name">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="region" class="form-label mt-15">Departamento</label>
+                        <select class="form-control" name="region" id="id_region">
+                            <option value="" selected>-----------</option>
+                        </select>
+                    </div>
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="city" class="form-label mt-15">Ciudad</label>
+                        <select class="form-control" name="city" id="id_city">
+                            <option value="" selected>-----------</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
                 <label for="">Correo Electronico:</label>
-                <input type="email" name="email" placeholder="Ingrese el Correo Electronico" class="form-control" id="client_email">
+                <input type="email" name="email" placeholder="Ingrese el Correo Electronico" class="form-control" id="email">
+                    </div>
+                </div>
             </div>
             <div class="form-group">
-                <label for="">Número de Contacto:</label>
-                <input type="text" name="phone1" placeholder="Ingrese la Número de Contacto" class="form-control" id="client_phone1">
+                <div class="row">
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="">Número de Contacto:</label>
+                        <input type="text" name="phone1" placeholder="Ingrese la Número de Contacto" class="form-control" id="phone1">
+                    </div>
+                    <div class="col-xl-6 col-md-12 col-mb-12">
+                        <label for="">Número de Contacto Auxiliar (Opcional):</label>
+                        <input type="text" name="phone2" placeholder="Ingrese la Número de Contacto" class="form-control" id="phone2">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="">Número de Contacto Auxiliar (Opcional):</label>
-                <input type="text" name="phone2" placeholder="Ingrese la Número de Contacto" class="form-control" id="client_phone2">
-            </div>
-            {% if not client_obj %}
-            <div class="form-group">
-                <input type="checkbox" name="visibility" id="client_visibility" 
-                {% if client_obj.visibility %} checked {% endif %} >
-                <label class="form-check-label" for="visibility">Activado</label>
-            </div>
-            {% endif %}  
 
             
         <div class="dropdown-divider"></div>
         
-        {% if client_obj %}
-        <button type="submit" class="btn btn-success"><span class="fa fa-save"></span>Guardar</button>
-        {% else %}
-        <button type="submit" class="btn btn-success"><span class="fa fa-save"></span> Nuevo</button>
-        {% endif %}
-        <button type="button" data-dismiss="modal" class="btn btn-danger">Cerrar</button>
+        <a href="#" onclick="sendForm();return false;" class="btn btn-success btn-icon-split">
+            <span id="create_payment" class="icon text-white-50">
+                <i class="fas fa-check"></i>
+            </span>
+            {% if not client_obj %}
+            <span style="color:white" class="text">Crear Cliente</span>
+            {% else %}
+            <span style="color:white" class="text">Modificar Cliente</span>
+            {% endif %}
+        </a>
 
         </form>
     </div>
+</div>
 </div>
 
 {% endblock content %}
@@ -170,6 +199,65 @@ function setCiudades() {
 
 }
 
+</script>
+<script type="text/javascript">
+    $(document).keyup(function(event) {
+    if (event.which === 13) {
+        sendForm();
+    }
+    });
+
+    function sendForm(form) {
+        $('#create_payment').html('<i class="fas fa-spinner fa-spin"></i>')
+
+        var send_obj = {
+            document: $("#client_document").val(),
+            type_document: $("#type_document").val(),
+            phone1: $("#phone1").val(),
+            phone2: $("#phone2").val(),
+            email: $("#mail").val(),
+            last_name: $("#last_name").val(),
+            first_name: $("#first_name").val(),
+            business_name: $("#business_name").val(),
+            id_region: $("#id_region").val(),
+            id_city: $("#id_city").val()
+            };
+
+        $.ajax({
+            type: 'POST',
+            {% if not client_obj %}
+            url: '{% url 'client_create' %}',
+            {% else %}
+            url: '{% url 'client_update' client_obj.id %}',
+            {% endif %}
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            data: JSON.stringify(send_obj),
+            headers: {'X-CSRFToken':getCookie('csrftoken')},
+            success:function(data){
+                if(data.cod == "000"){
+                    console.log('agregado')
+                    {% if not payment_obj %}
+                    alertSucces('Cliente Creado');
+                    {% else %}
+                    alertSucces('Cliente Modificado');
+                    {% endif %}
+                    $('#create_payment').html('<i class="fas fa-check"></i>')
+                    window.location.href = "{% url 'client_list' %}" ;
+                }
+                else{
+                    alertError('Crear Pago', JSON.parse(JSON.stringify(data.message)));
+                    $('#create_payment').html('<i class="fas fa-check"></i>')
+                }
+            },
+              error:function(){     
+                alertError('error', 'Error Inesperado del Servidor');
+                $('#create_payment').html('<i class="fas fa-check"></i>')
+              }
+            });
+            
+            
+        }
 </script>
 {% endblock extra_script %}
     

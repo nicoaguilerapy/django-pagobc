@@ -71,11 +71,11 @@
                 <div class="row">
                 <div class="col-xl-6 col-md-12 col-mb-12">
                 <label for="">Concepto:</label>
-                <input type="text" name="concept" {% if not payment_obj %} placeholder="Ingrese el Concepto" {% endif %} class="form-control" value="{{payment_obj.concept}}" {% if not identificador %} required {% else %} readonly {% endif %} id="concept">
+                <input type="text" name="concept" {% if not payment_obj %} placeholder="Ingrese el Concepto" {% endif %} class="form-control" value="{{payment_obj.concept}}" {% if not identificador and not isFee %} required {% else %} readonly {% endif %} id="concept">
                 </div>
                 <div class="col-xl-6 col-md-12 col-mb-12">
                 <label for="">Monto:</label>
-                <input type="number" name="mount" class="form-control" value="{% if payment_obj %}{{payment_obj.mount}}{% else %}0{% endif %}"  {% if not identificador %} required {% else %} readonly {% endif %} id="mount">
+                <input type="number" name="mount" class="form-control" value="{% if payment_obj %}{{payment_obj.mount}}{% else %}0{% endif %}"  {% if not identificador and not isFee %} required {% else %} readonly {% endif %} id="mount">
                 </div>
                 </div>
             </div>
@@ -221,7 +221,11 @@ $("#select-identificador").hide();
             success:function(data){
                 if(data.cod == "000"){
                     console.log('agregado')
-                    alertSucces(data.message);
+                    {% if not payment_obj %}
+                    alertSucces('Pago Modificado');
+                    {% else %}
+                    alertSucces('Pago Creado');
+                    {% endif %}
                     $('#create_payment').html('<i class="fas fa-check"></i>')
                     window.location.href = "{% url 'payment_list' %}" ;
                 }

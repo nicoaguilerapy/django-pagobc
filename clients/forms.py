@@ -5,7 +5,7 @@ from .models import Client
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['document','first_name', 'last_name', 'region', 'city', 'phone1', 'phone2','email', 'business_name']
+        fields = ['document','first_name', 'last_name', 'region', 'city', 'phone1', 'phone2','email', 'business_name', 'type_document']
 
         widgets = {
             'document': forms.TextInput(

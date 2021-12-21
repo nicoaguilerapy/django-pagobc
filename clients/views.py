@@ -15,6 +15,86 @@ from profiles.models import Ciudad, Departamento, Profile
 from django.db.models import Q
 import json
 
+def _client_save(received_json_data, client_obj, profile):
+    response_data = {}
+    error_messages = []
+
+    try:
+        type_document = received_json_data['type_document']
+        document = received_json_data['document']
+        first_name = received_json_data['first_name']
+        last_name = received_json_data['last_name']
+        id_region = int(received_json_data['id_region'])
+        id_city = int(received_json_data['id_city'])
+        phone1 = received_json_data['phone1']
+        client_email = received_json_data['client_email']
+    except:
+        response_data['cod'] = '909'
+        error_messages.append('Error de Request')
+        response_data['message'] = error_messages
+        return response_data
+
+    if type_document == 'RU':
+        try:
+            business_name = received_json_data['business_name']
+        except:
+            response_data['cod'] = '909'
+            error_messages.append('Ingrese una Razón Social')
+            response_data['message'] = error_messages
+            return response_data
+    
+    try:
+        phone2 = received_json_data['phone2']
+    except:
+        phone2 = ""
+
+    if type_document == '' or type_document == None:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese un Tipo de Documento')
+    elif document == '' or document == None:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese un Documento')
+    elif (business_name == '' or business_name == None) and type_document == 'RU':
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese una Razón Social')
+    elif first_name == '' or first_name == None:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese un Nombre')
+    elif last_name == '' or last_name == None:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese un Apellido')
+    elif client_email == '' or client_email == None:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese un Email')
+    elif phone1 == '' or phone1 == None:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese un Número')
+    elif id_city < 1:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese una Ciudad')
+    elif id_region < 1:
+        response_data['cod'] = '999'
+        error_messages.append('Ingrese una Ciudad')
+
+    if not response_data:
+        client_obj.type_document = type_document
+        client_obj.document = document
+        client_obj.first_name = first_name
+        client_obj.last_name = last_name
+        client_obj.email = client_email
+        client_obj.city = Ciudad.objects.get(id = id_city)
+        client_obj.region = Departamento.objects.get(id = id_region)
+        client_obj.phone1 = phone1
+        client_obj.phone2 = phone2
+        client_obj.company = profile.company
+        client_obj.save()
+
+        response_data['cod'] = '000'
+        return response_data
+
+    response_data['message'] = error_messages
+    return response_data
+
 @login_required()
 def client_create(request):
     try:
@@ -27,19 +107,22 @@ def client_create(request):
     template_name = 'clients/client_form.html'
     form = ClientForm(request.POST or None)
 
+    #renderizar vista
     if request.method == "GET":
         context['form'] = form
         return render(request, template_name, context)
 
-    if request.method == "POST":
-        print(form.data)
-        if form.is_valid():
-            client_obj = form.save(commit=False)
-            client_obj.owner = request.user
-            client_obj.company = profile.company
-            client_obj.save()
+    #crear objeto
+    if request.method == "POST" and request.is_ajax():
+        client_obj = Client.objects.create()
 
-        return redirect('client_list')
+        received_json_data=json.loads(request.body)
+        print(received_json_data)
+
+        response_data = _client_save(received_json_data, client_obj, profile)
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+    return redirect('client_list')
 
 @login_required()
 def client_list(request):

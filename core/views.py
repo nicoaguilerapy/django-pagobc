@@ -126,7 +126,7 @@ def _payment_save(received_json_data, payment_obj, profile):
 
     today = now()
 
-    if today > date_expiration:
+    if today <= date_expiration:
         response_data['cod'] = '999'
         error_messages.append('Ingrese un Tipo de Fecha Válida')
 
@@ -301,10 +301,14 @@ def payment_update(request, *args, **kwargs):
         context['formapago_list'] = FormaPago.objects.all()
         context['client_obj'] = client_obj
         context['payment_obj'] = payment_obj
+        context['date_expiration'] = (_getLocalDate(payment_obj.date_expiration))
+
+        if 'Cuota ID: ' in payment_obj.concept:
+            context['isFee'] = True
+
         if payment_obj.type != 'Servidor Propio':
             aux = payment_obj.type.replace('Pagopar - ', '')
             context['identificador'] = FormaPago.objects.get(forma_pago__icontains = aux)
-        context['date_expiration'] = (_getLocalDate(payment_obj.date_expiration))
         
 
         return render(request, template_name, context)
@@ -433,6 +437,51 @@ def fee_create(request):
         error_messages.append('Ingrese un Tipo de Fecha Válida')
         response_data['message'] = error_messages
         return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+@login_required()
+def fee_change(request, *args, **kwargs):
+    try:
+        profile = Profile.objects.get(user = request.user, active = True)
+    except:
+        return redirect('blank')
+
+    if request.method == "POST":
+        received_json_data=json.loads(request.body)
+        print(received_json_data)
+
+        response_data = {}
+        error_messages = []
+
+        try:
+            fee_id = received_json_data['fee_id']
+            type_change = received_json_data['type']
+        except:
+            response_data['cod'] = '909'
+            error_messages.append('Error de Request')
+            response_data['message'] = error_messages
+            
+        fee_obj = Fee.objects.get(id = fee_id)
+
+        if fee_obj.company != profile.company:
+            response_data['cod'] = '909'
+            error_messages.append('Error de Empresa')
+            response_data['message'] = error_messages
+
+        if not response_data:
+            text = 'Cuota ID: {}'.format(fee_obj.id)
+            if type_change == 'hide_paid':
+                payment_list = Payment.objects.filter(concept__contains = text, status= 'PC')
+            else:
+                payment_list = Payment.objects.filter(concept__contains = text)
+
+            for pay in payment_list:
+                pay.visibility = False
+                pay.save()
+
+            response_data['cod'] = '000'
+
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
 
 @login_required()
 def fee_list(request):

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BlankPage, home, checkout_list, fee_create, fee_list, payment_create, payment_hide, payment_list, payment_update
+from .views import BlankPage, fee_change, home, checkout_list, fee_create, fee_list, payment_create, payment_hide, payment_list, payment_update
 
 urlpatterns = [
     path('', home, name='home'),
@@ -12,6 +12,7 @@ urlpatterns = [
 
     path('fee/create/', fee_create, name='fee_create'),
     path('fee/list/', fee_list, name='fee_list'),
+    path('fee/change/', fee_change, name='fee_change'),
 
     path('checkout/list/', checkout_list, name='checkout_list'),
     path('checkout/list/', checkout_list, name='checkout_list'),
