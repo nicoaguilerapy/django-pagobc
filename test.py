@@ -14,7 +14,14 @@ from profiles.models import Empresa
 from django.utils import timezone
 import pytz
 from django.utils.timezone import make_aware
+from datetime import datetime, timedelta
+from datetime import date
+from django.utils.timezone import now, localtime
+from datetime import *
+from django.utils import timezone  
 
+def _getLocalDate(date1):
+    return timezone.localtime(date1, pytz.timezone('America/Asuncion'))
 
 today = now()
 m = today.month

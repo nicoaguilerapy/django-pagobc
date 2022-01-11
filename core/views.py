@@ -1,6 +1,4 @@
 from django.db.models.query_utils import PathInfo
-from django.utils.timezone import now, localtime
-from datetime import *
 from django.shortcuts import redirect, render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
@@ -16,6 +14,8 @@ from django.http import HttpResponse
 from django.utils import formats
 from datetime import datetime, timedelta
 from datetime import date
+from django.utils.timezone import now, localtime
+from datetime import *
 from django.utils import timezone        
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt

@@ -21,39 +21,45 @@ Cliente
         <!-- Card Body -->
         <div class="card-body">
         <form method="POST" >
+            <input type="hidden" id="client_id" value="{% if client_obj %}{{client_obj.id}}{% else %}-1{% endif %}">
             {% csrf_token %}
             <div class="form-group">
                 <div class="row">
                     <div class="col-xl-6 col-md-12 col-mb-12">
-                        <label for="type_document" class="form-label mt-15">Tipo de Documento</label>
+                        {% if client_obj %}
+                        <label for="">Tipo de Documento:</label>
+                        <input type="text" name="type_document" value="{% if client_obj %}{{client_obj.type_document}}{% else %}{% endif %}" readonly class="form-control" id="type_document">
+                        {% else %}
+                        <label for="type_document" class="form-label mt-15">Tipo de Documento:</label>
                         <select class="form-control" name="type_document" id="type_document">
                             <option value="CI" selected>CI</option>
                             <option value="RU">RUC</option>
                             <option value="PA">PASAPORTE</option>
                             <option value="OT">OTROS</option>
                         </select>
+                        {% endif %}
                     </div>
                     <div class="col-xl-6 col-md-12 col-mb-12">
                         <label for="">Documento Nº:</label>
-                        <input type="text" name="document" placeholder="Ingrese el Documento" class="form-control" id="document">
+                        <input type="text" name="document" value="{% if client_obj %}{{client_obj.document}}{% else %}{% endif %}" placeholder="Ingrese el Documento" {% if client_obj %} readonly {% endif %} class="form-control" id="document">
                     </div>
                 </div>
             </div>
 
             <div class="form-group" id="input_business_name">
                 <label for="">Razón Social:</label>
-                <input type="text" name="business_name" placeholder="Ingrese la Razón Social" class="form-control" id="business_name">
+                <input type="text" name="business_name" value="{% if client_obj %}{{client_obj.business_name}}{% else %}{% endif %}" placeholder="Ingrese la Razón Social" class="form-control" id="business_name">
             </div>
 
             <div class="form-group">
                 <div class="row">
                     <div class="col-xl-6 col-md-12 col-mb-12">
                         <label for="">Nombre:</label>
-                        <input type="text" name="first_name" placeholder="Ingrese el Nombre" class="form-control" id="first_name">
+                        <input type="text" name="first_name" value="{% if client_obj %}{{client_obj.first_name}}{% else %}{% endif %}" placeholder="Ingrese el Nombre" class="form-control" id="first_name">
                     </div>
                     <div class="col-xl-6 col-md-12 col-mb-12">
                         <label for="">Apellido:</label>
-                        <input type="text" name="last_name" placeholder="Ingrese el Apellido" class="form-control" id="last_name">
+                        <input type="text" name="last_name" value="{% if client_obj %}{{client_obj.last_name}}{% else %}{% endif %}" placeholder="Ingrese el Apellido" class="form-control" id="last_name">
                     </div>
                 </div>
             </div>
@@ -78,7 +84,7 @@ Cliente
                 <div class="row">
                     <div class="col-xl-6 col-md-12 col-mb-12">
                 <label for="">Correo Electronico:</label>
-                <input type="email" name="email" placeholder="Ingrese el Correo Electronico" class="form-control" id="email">
+                <input type="email" name="email" value="{% if client_obj %}{{client_obj.email}}{% else %}{% endif %}" placeholder="Ingrese el Correo Electronico" class="form-control" id="email">
                     </div>
                 </div>
             </div>
@@ -86,11 +92,11 @@ Cliente
                 <div class="row">
                     <div class="col-xl-6 col-md-12 col-mb-12">
                         <label for="">Número de Contacto:</label>
-                        <input type="text" name="phone1" placeholder="Ingrese la Número de Contacto" class="form-control" id="phone1">
+                        <input type="text" name="phone1" value="{% if client_obj %}{{client_obj.phone1}}{% else %}{% endif %}" placeholder="Ingrese la Número de Contacto" class="form-control" id="phone1">
                     </div>
                     <div class="col-xl-6 col-md-12 col-mb-12">
                         <label for="">Número de Contacto Auxiliar (Opcional):</label>
-                        <input type="text" name="phone2" placeholder="Ingrese la Número de Contacto" class="form-control" id="phone2">
+                        <input type="text" name="phone2" value="{% if client_obj %}{{client_obj.phone2}}{% else %}{% endif %}" placeholder="Ingrese la Número de Contacto" class="form-control" id="phone2">
                     </div>
                 </div>
             </div>
@@ -211,11 +217,12 @@ function setCiudades() {
         $('#create_payment').html('<i class="fas fa-spinner fa-spin"></i>')
 
         var send_obj = {
-            document: $("#client_document").val(),
+            client_id: $("#client_id").val(),
+            document: $("#document").val(),
             type_document: $("#type_document").val(),
             phone1: $("#phone1").val(),
             phone2: $("#phone2").val(),
-            email: $("#mail").val(),
+            email: $("#email").val(),
             last_name: $("#last_name").val(),
             first_name: $("#first_name").val(),
             business_name: $("#business_name").val(),
@@ -237,7 +244,7 @@ function setCiudades() {
             success:function(data){
                 if(data.cod == "000"){
                     console.log('agregado')
-                    {% if not payment_obj %}
+                    {% if not client_obj %}
                     alertSucces('Cliente Creado');
                     {% else %}
                     alertSucces('Cliente Modificado');
@@ -246,7 +253,7 @@ function setCiudades() {
                     window.location.href = "{% url 'client_list' %}" ;
                 }
                 else{
-                    alertError('Crear Pago', JSON.parse(JSON.stringify(data.message)));
+                    alertError('Crear Cliente', JSON.parse(JSON.stringify(data.message)));
                     $('#create_payment').html('<i class="fas fa-check"></i>')
                 }
             },

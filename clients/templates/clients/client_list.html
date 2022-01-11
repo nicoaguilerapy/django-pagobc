@@ -8,11 +8,26 @@ Lista de Pagos
 {% endblock title2 %}
     
 {% block content %}
-<div class="row">
-  <!-- DataTales Example -->
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <div class="table-responsive">
+<!-- DataTales Example -->
+<div class="col-12">
+  <div class="card shadow">
+      <!-- Card Header - Dropdown -->
+      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Pagos</h6>
+        <div class="dropdown no-arrow">
+  
+        </div>
+      </div>
+      <!-- Card Body -->
+    <div class="card-body">
+      <div class="row">
+        <a href="{% url 'client_create' %}" class="btn btn-success btn-icon-split">
+          <span id="create_payment" class="icon text-white-50">
+            <i class="fas fa-plus"></i>
+          </span>
+          <span style="color:white" class="text">Crear Cliente</span>
+      </a>
+      <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
@@ -43,21 +58,22 @@ Lista de Pagos
               <td>{{client.first_name}}</td>
               <td>{{client.last_name}}</td>
               <td>{{client.city.nombre}}</td>
-              <td><a href="{% url 'client_update' client.id %}" class="btn btn-primary btn-icon-split btn-sm">
-                  <span class="icon text-white-50">
-                      <i class="fas fa-edit"></i>
-                  </span>
-                  <span class="text">Modificar</span>
-                </a></td>
-            </tr>
+              <td><a href="{% url 'client_update' client.id %}" class="btn btn-info btn-circle">
+                <i class="fas fa-edit"></i>
+              </a>
+              
+              <a href="#" onclick="openDialogRemove({{payment.id}});return false;" class="btn btn-danger btn-circle">
+                <i class="fas fa-trash"></i>
+              </a>
           {% endfor %}
               
         </tbody>
       </table>
     </div>
   </div>
-</div>
 
+</div>
+</div>
 </div>
 
 {% endblock content %}

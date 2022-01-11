@@ -27,7 +27,8 @@ def _client_save(received_json_data, client_obj, profile):
         id_region = int(received_json_data['id_region'])
         id_city = int(received_json_data['id_city'])
         phone1 = received_json_data['phone1']
-        client_email = received_json_data['client_email']
+        email = received_json_data['email']
+        business_name = ""
     except:
         response_data['cod'] = '909'
         error_messages.append('Error de Request')
@@ -42,6 +43,12 @@ def _client_save(received_json_data, client_obj, profile):
             error_messages.append('Ingrese una Razón Social')
             response_data['message'] = error_messages
             return response_data
+
+    if Client.objects.filter(document = document).count() > 0:
+        response_data['cod'] = '909'
+        error_messages.append('Ingrese un Documento único')
+        response_data['message'] = error_messages
+        return response_data
     
     try:
         phone2 = received_json_data['phone2']
@@ -54,16 +61,13 @@ def _client_save(received_json_data, client_obj, profile):
     elif document == '' or document == None:
         response_data['cod'] = '999'
         error_messages.append('Ingrese un Documento')
-    elif (business_name == '' or business_name == None) and type_document == 'RU':
-        response_data['cod'] = '999'
-        error_messages.append('Ingrese una Razón Social')
     elif first_name == '' or first_name == None:
         response_data['cod'] = '999'
         error_messages.append('Ingrese un Nombre')
     elif last_name == '' or last_name == None:
         response_data['cod'] = '999'
         error_messages.append('Ingrese un Apellido')
-    elif client_email == '' or client_email == None:
+    elif email == '' or email == None:
         response_data['cod'] = '999'
         error_messages.append('Ingrese un Email')
     elif phone1 == '' or phone1 == None:
@@ -79,9 +83,10 @@ def _client_save(received_json_data, client_obj, profile):
     if not response_data:
         client_obj.type_document = type_document
         client_obj.document = document
+        client_obj.business_name = business_name
         client_obj.first_name = first_name
         client_obj.last_name = last_name
-        client_obj.email = client_email
+        client_obj.email = email
         client_obj.city = Ciudad.objects.get(id = id_city)
         client_obj.region = Departamento.objects.get(id = id_region)
         client_obj.phone1 = phone1
@@ -118,6 +123,7 @@ def client_create(request):
 
         received_json_data=json.loads(request.body)
         print(received_json_data)
+        print(client_obj)
 
         response_data = _client_save(received_json_data, client_obj, profile)
         return HttpResponse(json.dumps(response_data), content_type="application/json")
@@ -180,32 +186,20 @@ def client_update(request, *args, **kwargs):
         return redirect('home')
 
     if request.method == "GET":
-        form = ClientForm(instance=client_obj)
-        context['form'] = form
         context['client_obj'] = client_obj
         print()
         print(context)
         print()
         return render(request, template_name, context)
 
-    if request.method == "POST":
-        form = ClientForm(request.POST)
-        if form.is_valid():
-            client_obj.document = form.data['document']
-            client_obj.first_name = form.data['first_name']
-            client_obj.last_name = form.data['last_name']
-            client_obj.region = Departamento.objects.get(id = form.data['region'])
-            client_obj.city = Ciudad.objects.get(id = form.data['city'])
-            client_obj.email = form.data['email']
-            client_obj.phone1 = form.data['phone1']
-            client_obj.phone2 = form.data['phone2']
-            try:
-                visibility = request.POST['visibility']
-                client_obj.visibility = True
-            except:
-                client_obj.visibility = False
-            
-            client_obj.save()
-            
+    if request.method == "POST" and request.is_ajax():
+        received_json_data=json.loads(request.body)
+        print(received_json_data)
+        print(client_obj)
+        
+        client_obj1 = Client.objects.get(id = received_json_data['client_id']) 
 
-        return redirect('client_list')
+        if client_obj1 == client_obj:
+            response_data = _client_save(received_json_data, client_obj, profile)
+        
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
