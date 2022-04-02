@@ -15,7 +15,6 @@ from core.models import *
 from pagopar.models import FormaPago, Pago
 from profiles.models import Ciudad, Departamento, Profile
 from django.views import View
-import json
 from django.http import JsonResponse
 import urllib.request
 
