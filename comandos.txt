@@ -7,3 +7,29 @@ python manage.py shell
 #shell script
 
 exec(open('test.py').read())
+
+heroku login
+
+heroku create uvero-django-pagosbc
+
+heroku git:remote -a uvero-django-pagosbc
+
+heroku config:set DISABLE_COLLECTSTATIC=1 --app uvero-django-pagosbc
+
+git push heroku master
+
+heroku config:unset DISABLE_COLLECTSTATIC  --app uvero-django-pagosbc
+
+heroku run python manage.py makemigrations  --app uvero-django-pagosbc
+
+heroku run python manage.py migrate  --app uvero-django-pagosbc
+
+heroku run python manage.py migrate --run-syncdb  --app uvero-django-pagosbc
+
+heroku run python manage.py collectstatic --noinput  --app uvero-django-pagosbc
+
+heroku run python manage.py collectstatic  --app uvero-django-pagosbc
+
+heroku ps:scale web=1  --app uvero-django-pagosbc
+
+heroku open  --app uvero-django-pagosbc
