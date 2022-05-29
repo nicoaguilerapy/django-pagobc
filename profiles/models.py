@@ -24,7 +24,7 @@ def _createHash():
     while not unique_token_found:
         token_new = uuid4()
     # This weird looking construction is a way to pass a value to a field with a dynamic name
-        if Profile.objects.filter(token = token_new).count() is 0:
+        if Profile.objects.filter(token = token_new).count() == 0:
             unique_token_found = True
 
     return token_new
