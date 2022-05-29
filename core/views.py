@@ -1,7 +1,6 @@
 from django.db.models.query_utils import PathInfo
 from django.shortcuts import redirect, render
 from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
 from core.forms import FeeForm, PaymentForm
@@ -39,8 +38,12 @@ class StaffRequired(object):
         return super(StaffRequired, self).dispatch(request, *args, **kwargs)
 
 def _makeDate(date1):
+    print("--------")
+    print(date1)
     new_date = make_aware(datetime.strptime(date1, '%d/%m/%Y'))
+    print(new_date)
     new_date = localtime(new_date).replace(hour=23, minute=59, second=59, microsecond=0)
+    print(new_date)
     return new_date
 
 def _getLocalDate(date1):
@@ -122,13 +125,13 @@ def _payment_save(received_json_data, payment_obj, profile):
         date_expiration = _makeDate(datepicker)
     except:
         response_data['cod'] = '999'
-        error_messages.append('Ingrese un Tipo de Fecha Válida')
+        error_messages.append('Ingrese un Tipo de Fecha Válida 2')
 
     today = now()
 
-    if today <= date_expiration:
+    if today >= date_expiration:
         response_data['cod'] = '999'
-        error_messages.append('Ingrese un Tipo de Fecha Válida')
+        error_messages.append('Ingrese un Tipo de Fecha Válida 1')
 
     if not response_data:
         payment_obj.concept = concept

@@ -33,3 +33,6 @@ heroku run python manage.py collectstatic  --app uvero-django-pagosbc
 heroku ps:scale web=1  --app uvero-django-pagosbc
 
 heroku open  --app uvero-django-pagosbc
+
+C:\Entornos\pagosbc_env\Scripts\activate
+

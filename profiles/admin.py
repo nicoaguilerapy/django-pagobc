@@ -4,7 +4,6 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
-
 from .models import CustomUser
 
 

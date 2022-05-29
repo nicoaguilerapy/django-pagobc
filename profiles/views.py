@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-
 from profiles.forms import ProfileForm
 from .models import Ciudad, CustomUser, Departamento, Empresa, Profile
 from django.utils.decorators import method_decorator
