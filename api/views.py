@@ -149,7 +149,7 @@ def consult_pagoexpress(request, *args, **kwargs):
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
 
         else:
-            response_data['codRetorno'] = '99'
+            response_data['codRetorno'] = '98'
             response_data['desRetorno'] = 'Error en el proceso'
             return HttpResponse(json.dumps(response_data), content_type="application/json")
 
@@ -161,11 +161,10 @@ def consult_pagoexpress(request, *args, **kwargs):
 @csrf_exempt
 def consult_aquipago(request, *args, **kwargs):
     response_data = {}
-    today = timezone.now()
+    today = now()
+    empresa_obj = Empresa.objects.get(id=kwargs.get('id'))
 
     if request.method == "GET":
-
-        empresa_obj = Empresa.objects.get(id=kwargs.get('id'))
 
         #capturar datos del negocio
         try:
@@ -228,7 +227,7 @@ def consult_aquipago(request, *args, **kwargs):
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
 
             else:
-                response_data['codRetorno'] = '999'
+                response_data['codRetorno'] = '998'
                 response_data['desRetorno'] = 'Error en el proceso'
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
 
@@ -240,137 +239,142 @@ def consult_aquipago(request, *args, **kwargs):
     if request.method == "POST":
         response_data = {}
         detail_data = {}
-        today = timezone.now()
-        user = "admin"
-        pwd = "H-ad37Gb>>66GX'$"
+        today = now()
+        user = empresa_obj.usuario
+        pwd = empresa_obj.password
 
         received_json_data=json.loads(request.body)
         print(received_json_data)
 
-        if request.method == 'POST':
-            codServicio = received_json_data['codServicio']
-            usuario = received_json_data['usuario']
-            password = received_json_data['password']
-            tipoTrx = received_json_data['tipoTrx']
-            nroFactura = received_json_data['nroFactura']
-            importe = received_json_data['importe']
-            moneda = received_json_data['moneda']
-            medioPago = received_json_data['medioPago']
-            codTransaccion = received_json_data['codTransaccion']
-            
+        codServicio = received_json_data['codServicio']
+        usuario = received_json_data['usuario']
+        password = received_json_data['password']
+        tipoTrx = received_json_data['tipoTrx']
+        nroFactura = received_json_data['nroFactura']
+        importe = received_json_data['importe']
+        moneda = received_json_data['moneda']
+        medioPago = received_json_data['medioPago']
+        codTransaccion = received_json_data['codTransaccion']
+        
 
-            if usuario == user and password == pwd:
-                if nroFactura and importe and moneda and medioPago and codTransaccion and tipoTrx:
-                    if moneda != '1':
-                        response_data['codRetorno'] = '003'
-                        response_data['desRetorno'] = 'Solo se aceptan pagos en Guaranies'
-                        return HttpResponse(json.dumps(response_data), content_type="application/json")
-  
-                    try:
-                        payment_obj = Payment.objects.get(id = nroFactura)
-                        cliente = Client.objects.get(id = payment_obj.client.id)
-                    except:
-                        response_data['codRetorno'] = '999'
-                        response_data['desRetorno'] = 'Error en el proceso'
-
-                        return HttpResponse(json.dumps(response_data), content_type="application/json")
-
-                    importeInt = int(importe)
-                    print()
-                    print(payment_obj)
-                    print(cliente)
-                    print()
-
-                    if tipoTrx == '03' and payment_obj.status == 'PP':
-                        if importeInt == payment_obj.mount:
-                            checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
-
-                            if created:
-                                checkout.transaction = codTransaccion
-                                checkout.mount = importeInt
-                                checkout.owner = payment_obj.owner
-                                checkout.company = payment_obj.company 
-                                checkout.save()
-                                payment_obj.status = 'PC'
-                                payment_obj.save()
-                                print()
-                                print(payment_obj)
-                                print()
-                                
-                                response_data['codServicio'] = codServicio
-                                response_data['tipoTrx'] = '03'
-                                response_data['codRetorno'] = '000'
-                                response_data['desRetorno'] = 'APROBADO'
-                                _sendEmail(payment_obj.id, cliente.email, codTransaccion, payment_obj.get_status_display())
-
-                                return HttpResponse(json.dumps(response_data), content_type="application/json")
-                            else:
-                                response_data['codRetorno'] = '004'
-                                response_data['desRetorno'] = 'Ya Pagado'
-                                return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '04' and payment_obj.status == 'PC':
-                        checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
-
-                        if created:
-                            response_data['codRetorno'] = '999'
-                            response_data['desRetorno'] = 'Error en el proceso'
-                            checkout.delete()
-                            return HttpResponse(json.dumps(response_data), content_type="application/json")
-                        else:
-                            if not checkout.transaction_anulate:
-                                checkout.transaction_anulate = received_json_data['codTransaccionAnular']
-                                checkout.owner = payment_obj.owner
-                                checkout.company = payment_obj.company 
-                                checkout.save()
-                                payment_obj.status = 'PA'
-                                payment_obj.save()
-                                response_data['codServicio'] = codServicio
-                                response_data['tipoTrx'] = '04'
-                                response_data['codRetorno'] = '000'
-                                response_data['desRetorno'] = 'APROBADO'
-
-                                _sendEmail(payment_obj.id, cliente.email, checkout.transaction_anulate, payment_obj.get_status_display())
-
-                                return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    elif tipoTrx == '06' and payment_obj.status == 'PA':
-                        print()
-                        print('Anular')
-                        print()
-                        checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
-
-                        if created:
-                            response_data['codRetorno'] = '999'
-                            response_data['desRetorno'] = 'Error en el proceso'
-                            checkout.delete()
-                            return HttpResponse(json.dumps(response_data), content_type="application/json")
-                        else:
-                            if checkout.transaction_anulate == received_json_data['codTransaccionAnular']:
-                                checkout.transaction_anulate = None
-                                checkout.owner = payment_obj.owner
-                                checkout.company = payment_obj.company 
-                                checkout.save()
-                                payment_obj.status = 'PC'
-                                payment_obj.save()
-                                response_data['codServicio'] = codServicio
-                                response_data['tipoTrx'] = '04'
-                                response_data['codRetorno'] = '000'
-                                response_data['desRetorno'] = 'APROBADO'
-
-                                _sendEmail(payment_obj.id, cliente.email, checkout.transaction, payment_obj.get_status_display())
-
-                                return HttpResponse(json.dumps(response_data), content_type="application/json")
-
-                            
-                else:
-                    response_data['codRetorno'] = '999'
-                    response_data['desRetorno'] = 'Error en el proceso'
+        if usuario == user and password == pwd:
+            if nroFactura and importe and moneda and medioPago and codTransaccion and tipoTrx:
+                if moneda != '1':
+                    response_data['codRetorno'] = '003'
+                    response_data['desRetorno'] = 'Solo se aceptan pagos en Guaranies'
                     return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+                try:
+                    payment_obj = Payment.objects.get(id = nroFactura)
+                    cliente = Client.objects.get(id = payment_obj.client.id)
+                except:
+                    response_data['codRetorno'] = '994'
+                    response_data['desRetorno'] = 'Error en el proceso'
+
+                    return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+                importeInt = int(importe)
+                print()
+                print(payment_obj)
+                print(cliente)
+                print(importeInt)
+                print()
+
+                if tipoTrx == '03' and payment_obj.status == 'PP':
+                    if importeInt == payment_obj.mount:
+                        checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
+
+                        if created:
+                            checkout.transaction = codTransaccion
+                            checkout.mount = importeInt
+                            checkout.owner = payment_obj.owner
+                            checkout.company = payment_obj.company 
+                            checkout.save()
+                            payment_obj.status = 'PC'
+                            payment_obj.save()
+                            print()
+                            print(payment_obj)
+                            print()
+                            
+                            response_data['codServicio'] = codServicio
+                            response_data['tipoTrx'] = '03'
+                            response_data['codRetorno'] = '000'
+                            response_data['desRetorno'] = 'APROBADO'
+                            _sendEmail(payment_obj.id, cliente.email, codTransaccion, payment_obj.get_status_display())
+
+                            return HttpResponse(json.dumps(response_data), content_type="application/json")
+                        else:
+                            response_data['codRetorno'] = '004'
+                            response_data['desRetorno'] = 'Ya Pagado'
+                            return HttpResponse(json.dumps(response_data), content_type="application/json")
+                    else:
+                        response_data['codRetorno'] = '992'
+                        response_data['desRetorno'] = 'El monto debe ser igual a la deuda'
+                        return HttpResponse(json.dumps(response_data), content_type="application/json")
+                        
+                elif tipoTrx == '04' and payment_obj.status == 'PC':
+                    checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
+
+                    if created:
+                        response_data['codRetorno'] = '996'
+                        response_data['desRetorno'] = 'Error en el proceso'
+                        checkout.delete()
+                        return HttpResponse(json.dumps(response_data), content_type="application/json")
+                    else:
+                        if not checkout.transaction_anulate:
+                            checkout.transaction_anulate = received_json_data['codTransaccionAnular']
+                            checkout.owner = payment_obj.owner
+                            checkout.company = payment_obj.company 
+                            checkout.save()
+                            payment_obj.status = 'PA'
+                            payment_obj.save()
+                            response_data['codServicio'] = codServicio
+                            response_data['tipoTrx'] = '04'
+                            response_data['codRetorno'] = '000'
+                            response_data['desRetorno'] = 'APROBADO'
+
+                            _sendEmail(payment_obj.id, cliente.email, checkout.transaction_anulate, payment_obj.get_status_display())
+
+                            return HttpResponse(json.dumps(response_data), content_type="application/json")
+                elif tipoTrx == '06' and payment_obj.status == 'PA':
+                    print()
+                    print('Anular')
+                    print()
+                    checkout,  created = Checkout.objects.get_or_create( payment = payment_obj )
+
+                    if created:
+                        response_data['codRetorno'] = '997'
+                        response_data['desRetorno'] = 'Error en el proceso'
+                        checkout.delete()
+                        return HttpResponse(json.dumps(response_data), content_type="application/json")
+                    else:
+                        if checkout.transaction_anulate == received_json_data['codTransaccionAnular']:
+                            checkout.transaction_anulate = None
+                            checkout.owner = payment_obj.owner
+                            checkout.company = payment_obj.company 
+                            checkout.save()
+                            payment_obj.status = 'PC'
+                            payment_obj.save()
+                            response_data['codServicio'] = codServicio
+                            response_data['tipoTrx'] = '04'
+                            response_data['codRetorno'] = '000'
+                            response_data['desRetorno'] = 'APROBADO'
+
+                            _sendEmail(payment_obj.id, cliente.email, checkout.transaction, payment_obj.get_status_display())
+
+                            return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+                        
             else:
-                response_data['codRetorno'] = '999'
+                response_data['codRetorno'] = '998'
                 response_data['desRetorno'] = 'Error en el proceso'
                 return HttpResponse(json.dumps(response_data), content_type="application/json")
-            
-            response_data['codRetorno'] = '999'
+        else:
+            response_data['codRetorno'] = '995'
             response_data['desRetorno'] = 'Error en el proceso'
             return HttpResponse(json.dumps(response_data), content_type="application/json")
-                    
+        
+        response_data['codRetorno'] = '999'
+        response_data['desRetorno'] = 'Error en el proceso'
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+                

@@ -33,7 +33,7 @@ class Payment(models.Model):
         ordering = ['date_created']
 
     def __str__(self):
-        return "{}: {}, Monto: {}".format(self.id, self.client, self.mount)
+        return "{}: {}, Monto: {}, Estado: {}".format(self.id, self.client, self.mount, self.status)
 
     def getDateString(self):
         return self.date_expiration.strftime("%d-%m-%Y")
