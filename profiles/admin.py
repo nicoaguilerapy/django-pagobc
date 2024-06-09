@@ -3,7 +3,7 @@ from .models import Empresa, Profile, Departamento, Ciudad
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from .models import CustomUser
 
 

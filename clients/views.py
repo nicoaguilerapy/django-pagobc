@@ -44,7 +44,7 @@ def _client_save(received_json_data, client_obj, profile):
             response_data['message'] = error_messages
             return response_data
 
-    if Client.objects.filter(document = document).count() > 0:
+    if Client.objects.filter(document = document).count() > 0 and client_obj.document != document:
         response_data['cod'] = '909'
         error_messages.append('Ingrese un Documento único')
         response_data['message'] = error_messages

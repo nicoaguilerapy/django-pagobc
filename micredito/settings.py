@@ -12,9 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
-import environ
-env = environ.Env()
-environ.Env.read_env()
+from decouple import config as env
 
 SECRET_KEY = env('SECRET_KEY')
 
@@ -61,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'micredito.urls'
@@ -156,23 +155,12 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
-AUTH_USER_MODEL = 'profiles.CustomUser'
-
-try:
-    # Heroku 
-    import django_heroku
-    django_heroku.settings(locals())
-    import environ
-    # Initialise environment variables
-    env = environ.Env()
-    environ.Env.read_env()
-except:
-    pass
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "uverodevpy@gmail.com"
-EMAIL_HOST_PASSWORD = env('EMAIL_PASS')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+X_FRAME_OPTIONS = 'SAMEORIGIN'
