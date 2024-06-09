@@ -11,10 +11,10 @@ Aquí puedes agregar imágenes de ejemplo que ilustren cómo se ve el sistema y 
 ![Pantalla de Inicio](img/dashboard.png)
 
 ### Generar Pago
-![Generar Pago](images/cuotas.png)
+![Generar Pago](img/cuotas.png)
 
 ### Lista de Cuotas/Pagos
-![Lista de Cuotas](images/lista.png)
+![Lista de Cuotas](img/lista.png)
 
 ## Licencia
 
